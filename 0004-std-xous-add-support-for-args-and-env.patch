@@ -1,0 +1,659 @@
+From 976e67fc0b0803587d0fea0b08502c79d68edddb Mon Sep 17 00:00:00 2001
+From: Sean Cross <sean@xobs.io>
+Date: Sun, 7 Jan 2024 22:49:22 +0800
+Subject: [PATCH 4/4] std: xous: add support for args and env
+
+Process arguments and environment variables are both passed by way of
+Application Parameters. These are a TLV format that gets passed in as
+the second process argument.
+
+This patch combines both as they are very similar in their decode.
+
+Signed-off-by: Sean Cross <sean@xobs.io>
+---
+ library/std/src/sys/pal/xous/args.rs          |  52 ++++
+ library/std/src/sys/pal/xous/mod.rs           |   1 -
+ library/std/src/sys/pal/xous/os.rs            | 148 ++++++++--
+ library/std/src/sys/pal/xous/os/params.rs     | 267 ++++++++++++++++++
+ .../std/src/sys/pal/xous/os/params/test.rs    |  74 +++++
+ 5 files changed, 510 insertions(+), 32 deletions(-)
+ create mode 100644 library/std/src/sys/pal/xous/args.rs
+ create mode 100644 library/std/src/sys/pal/xous/os/params.rs
+ create mode 100644 library/std/src/sys/pal/xous/os/params/test.rs
+
+diff --git a/library/std/src/sys/pal/xous/args.rs b/library/std/src/sys/pal/xous/args.rs
+new file mode 100644
+index 00000000000..a2db3ae52a0
+--- /dev/null
++++ b/library/std/src/sys/pal/xous/args.rs
+@@ -0,0 +1,52 @@
++use crate::ffi::OsString;
++use crate::sys::pal::xous::os::{get_application_parameters, params::ArgumentList};
++use crate::{fmt, vec};
++
++pub struct Args {
++    parsed_args_list: vec::IntoIter<OsString>,
++}
++
++pub fn args() -> Args {
++    let Some(params) = get_application_parameters() else {
++        return Args { parsed_args_list: vec![].into_iter() };
++    };
++
++    for param in params {
++        if let Ok(args) = ArgumentList::try_from(&param) {
++            let mut parsed_args = vec![];
++            for arg in args {
++                parsed_args.push(arg.into());
++            }
++            return Args { parsed_args_list: parsed_args.into_iter() };
++        }
++    }
++    Args { parsed_args_list: vec![].into_iter() }
++}
++
++impl fmt::Debug for Args {
++    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
++        self.parsed_args_list.as_slice().fmt(f)
++    }
++}
++
++impl Iterator for Args {
++    type Item = OsString;
++    fn next(&mut self) -> Option<OsString> {
++        self.parsed_args_list.next()
++    }
++    fn size_hint(&self) -> (usize, Option<usize>) {
++        self.parsed_args_list.size_hint()
++    }
++}
++
++impl DoubleEndedIterator for Args {
++    fn next_back(&mut self) -> Option<OsString> {
++        self.parsed_args_list.next_back()
++    }
++}
++
++impl ExactSizeIterator for Args {
++    fn len(&self) -> usize {
++        self.parsed_args_list.len()
++    }
++}
+diff --git a/library/std/src/sys/pal/xous/mod.rs b/library/std/src/sys/pal/xous/mod.rs
+index 8a59005eece..f59eb6e36a6 100644
+--- a/library/std/src/sys/pal/xous/mod.rs
++++ b/library/std/src/sys/pal/xous/mod.rs
+@@ -1,7 +1,6 @@
+ #![deny(unsafe_op_in_unsafe_fn)]
+ 
+ pub mod alloc;
+-#[path = "../unsupported/args.rs"]
+ pub mod args;
+ #[path = "../unsupported/env.rs"]
+ pub mod env;
+diff --git a/library/std/src/sys/pal/xous/os.rs b/library/std/src/sys/pal/xous/os.rs
+index 8d2eaee8aa6..0779559b245 100644
+--- a/library/std/src/sys/pal/xous/os.rs
++++ b/library/std/src/sys/pal/xous/os.rs
+@@ -1,4 +1,5 @@
+ use super::unsupported;
++use crate::collections::HashMap;
+ use crate::error::Error as StdError;
+ use crate::ffi::{OsStr, OsString};
+ use crate::fmt;
+@@ -6,25 +7,38 @@
+ use crate::marker::PhantomData;
+ use crate::os::xous::ffi::Error as XousError;
+ use crate::path::{self, PathBuf};
++use crate::sync::{
++    atomic::{AtomicPtr, AtomicUsize, Ordering},
++    Mutex, Once,
++};
++use crate::vec;
++
++pub(crate) mod params;
++
++static PARAMS_ADDRESS: AtomicPtr<u8> = AtomicPtr::new(core::ptr::null_mut());
+ 
+ #[cfg(not(test))]
+ #[cfg(feature = "panic_unwind")]
+ mod eh_unwinding {
+-    pub(crate) struct EhFrameFinder(usize /* eh_frame */);
+-    pub(crate) static mut EH_FRAME_SETTINGS: EhFrameFinder = EhFrameFinder(0);
+-    impl EhFrameFinder {
+-        pub(crate) unsafe fn init(&mut self, eh_frame: usize) {
+-            unsafe {
+-                EH_FRAME_SETTINGS.0 = eh_frame;
+-            }
+-        }
+-    }
++    pub(crate) struct EhFrameFinder;
++    pub(crate) static mut EH_FRAME_ADDRESS: usize = 0;
++    pub(crate) static EH_FRAME_SETTINGS: EhFrameFinder = EhFrameFinder;
++    // impl EhFrameFinder {
++    //     pub fn new(frame: usize) -> Self {
++    //         EhFrameFinder(frame)
++    //     }
++    // }
++
+     unsafe impl unwind::EhFrameFinder for EhFrameFinder {
+         fn find(&self, _pc: usize) -> Option<unwind::FrameInfo> {
+-            Some(unwind::FrameInfo {
+-                text_base: None,
+-                kind: unwind::FrameInfoKind::EhFrame(self.0),
+-            })
++            if unsafe { EH_FRAME_ADDRESS == 0 } {
++                None
++            } else {
++                Some(unwind::FrameInfo {
++                    text_base: None,
++                    kind: unwind::FrameInfoKind::EhFrame(unsafe { EH_FRAME_ADDRESS }),
++                })
++            }
+         }
+     }
+ }
+@@ -42,12 +56,21 @@ pub extern "C" fn abort() {
+     }
+ 
+     #[no_mangle]
+-    pub extern "C" fn _start(eh_frame: usize) {
++    pub extern "C" fn _start(eh_frame: usize, params_address: usize) {
+         #[cfg(feature = "panic_unwind")]
+-        unsafe {
+-            super::eh_unwinding::EH_FRAME_SETTINGS.init(eh_frame);
++        {
++            unsafe { super::eh_unwinding::EH_FRAME_ADDRESS = eh_frame };
+             unwind::set_custom_eh_frame_finder(&super::eh_unwinding::EH_FRAME_SETTINGS).ok();
+         }
++
++        if params_address != 0 {
++            let params_address = core::ptr::from_exposed_addr_mut::<u8>(params_address);
++            if unsafe {
++                super::params::ApplicationParameters::new_from_ptr(params_address).is_some()
++            } {
++                super::PARAMS_ADDRESS.store(params_address, core::sync::atomic::Ordering::Relaxed);
++            }
++        }
+         exit(unsafe { main() });
+     }
+ 
+@@ -117,44 +140,107 @@ pub fn current_exe() -> io::Result<PathBuf> {
+     unsupported()
+ }
+ 
+-pub struct Env(!);
++pub(crate) fn get_application_parameters() -> Option<params::ApplicationParameters> {
++    let params_address = PARAMS_ADDRESS.load(Ordering::Relaxed);
++    unsafe { params::ApplicationParameters::new_from_ptr(params_address) }
++}
++
++// ---------- Environment handling ---------- //
++static ENV: AtomicUsize = AtomicUsize::new(0);
++static ENV_INIT: Once = Once::new();
++type EnvStore = Mutex<HashMap<OsString, OsString>>;
++
++fn get_env_store() -> &'static EnvStore {
++    ENV_INIT.call_once(|| {
++        println!("Creating initial store");
++        let env_store = EnvStore::default();
++        if let Some(params) = get_application_parameters() {
++            for param in params {
++                println!("Checking param for env block...");
++                if let Ok(envs) = params::EnvironmentBlock::try_from(&param) {
++                    println!("Found env block!");
++                    let mut env_store = env_store.lock().unwrap();
++                    for env in envs {
++                        env_store.insert(env.key.into(), env.value.into());
++                    }
++                    break;
++                }
++            }
++        } else {
++            println!("Application parameters were NULL");
++        }
++        ENV.store(Box::into_raw(Box::new(env_store)) as _, Ordering::Relaxed)
++    });
++    unsafe { &*core::ptr::from_exposed_addr::<EnvStore>(ENV.load(Ordering::Relaxed)) }
++}
++
++pub struct Env {
++    iter: vec::IntoIter<(OsString, OsString)>,
++}
++
++// FIXME(https://github.com/rust-lang/rust/issues/114583): Remove this when <OsStr as Debug>::fmt matches <str as Debug>::fmt.
++pub struct EnvStrDebug<'a> {
++    slice: &'a [(OsString, OsString)],
++}
++
++impl fmt::Debug for EnvStrDebug<'_> {
++    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
++        let Self { slice } = self;
++        f.debug_list()
++            .entries(slice.iter().map(|(a, b)| (a.to_str().unwrap(), b.to_str().unwrap())))
++            .finish()
++    }
++}
+ 
+ impl Env {
+-    // FIXME(https://github.com/rust-lang/rust/issues/114583): Remove this when <OsStr as Debug>::fmt matches <str as Debug>::fmt.
+     pub fn str_debug(&self) -> impl fmt::Debug + '_ {
+-        let Self(inner) = self;
+-        match *inner {}
++        let Self { iter } = self;
++        EnvStrDebug { slice: iter.as_slice() }
+     }
+ }
+ 
+ impl fmt::Debug for Env {
+-    fn fmt(&self, _: &mut fmt::Formatter<'_>) -> fmt::Result {
+-        let Self(inner) = self;
+-        match *inner {}
++    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
++        let Self { iter } = self;
++        f.debug_list().entries(iter.as_slice()).finish()
+     }
+ }
+ 
++impl !Send for Env {}
++impl !Sync for Env {}
++
+ impl Iterator for Env {
+     type Item = (OsString, OsString);
+     fn next(&mut self) -> Option<(OsString, OsString)> {
+-        self.0
++        self.iter.next()
++    }
++    fn size_hint(&self) -> (usize, Option<usize>) {
++        self.iter.size_hint()
+     }
+ }
+ 
+ pub fn env() -> Env {
+-    panic!("not supported on this platform")
++    let clone_to_vec = |map: &HashMap<OsString, OsString>| -> Vec<_> {
++        map.iter().map(|(k, v)| (k.clone(), v.clone())).collect()
++    };
++
++    let iter = clone_to_vec(&*get_env_store().lock().unwrap()).into_iter();
++    Env { iter }
+ }
+ 
+-pub fn getenv(_: &OsStr) -> Option<OsString> {
+-    None
++pub fn getenv(k: &OsStr) -> Option<OsString> {
++    get_env_store().lock().unwrap().get(k).cloned()
+ }
+ 
+-pub fn setenv(_: &OsStr, _: &OsStr) -> io::Result<()> {
+-    Err(io::const_io_error!(io::ErrorKind::Unsupported, "cannot set env vars on this platform"))
++pub fn setenv(k: &OsStr, v: &OsStr) -> io::Result<()> {
++    let (k, v) = (k.to_owned(), v.to_owned());
++    get_env_store().lock().unwrap().insert(k, v);
++    Ok(())
+ }
+ 
+-pub fn unsetenv(_: &OsStr) -> io::Result<()> {
+-    Err(io::const_io_error!(io::ErrorKind::Unsupported, "cannot unset env vars on this platform"))
++pub fn unsetenv(k: &OsStr) -> io::Result<()> {
++    get_env_store().lock().unwrap().remove(k);
++    Ok(())
+ }
+ 
+ pub fn temp_dir() -> PathBuf {
+diff --git a/library/std/src/sys/pal/xous/os/params.rs b/library/std/src/sys/pal/xous/os/params.rs
+new file mode 100644
+index 00000000000..506158ccbe4
+--- /dev/null
++++ b/library/std/src/sys/pal/xous/os/params.rs
+@@ -0,0 +1,267 @@
++use crate::ffi::OsString;
++/// Xous passes a pointer to the parameter block as the second argument.
++/// This is used for passing flags such as environment variables. The
++/// format of the argument block is:
++///
++/// #[repr(C)]
++/// struct BlockHeader {
++///     /// Magic number that identifies this block. Must be printable ASCII.
++///     magic: [u8; 4],
++///
++///     /// The size of the data block. Does not include this header. May be 0.
++///     size: u32,
++///
++///     /// The contents of this block. Varies depending on the block type.
++///     data: [u8; 0],
++/// }
++///
++/// There is a BlockHeader at the start that has magic `AppP`, and the data
++/// that follows is the number of blocks present:
++///
++/// #[repr(C)]
++/// struct ApplicationParameters {
++///     magic: b"AppP",
++///     size: 4u32,
++///
++///     /// The size of the entire application slice, in bytes, including all headers
++///     length: u32,
++///
++///     /// Number of application parameters present. Must be at least 1 (this block)
++///     entries: (parameter_count as u32).to_bytes_le(),
++/// }
++///
++/// #[repr(C)]
++/// struct EnvironmentBlock {
++///     magic: b"EnvB",
++///
++///     /// Total number of bytes, excluding this header
++///     size: 2+data.len(),
++///
++///     /// The number of environment variables
++///     count: u16,
++///
++///     /// Environment variable iteration
++///     data: [u8; 0],
++/// }
++///
++/// Environment variables are present in an `EnvB` block. The `data` section is
++/// a sequence of bytes of the form:
++///
++///      (u16 /* key_len */; [0u8; key_len as usize] /* key */,
++///       u16 /* val_len */ [0u8; val_len as usize])
++///
++/// #[repr(C)]
++/// struct ArgumentList {
++///     magic: b"ArgL",
++///
++///     /// Total number of bytes, excluding this header
++///     size: 2+data.len(),
++///
++///     /// The number of arguments variables
++///     count: u16,
++///
++///     /// Argument variable iteration
++///     data: [u8; 0],
++/// }
++///
++/// Args are just an array of strings that represent command line arguments.
++/// They are a sequence of the form:
++///
++///      (u16 /* val_len */ [0u8; val_len as usize])
++use core::slice;
++
++/// Magic number indicating we have an environment block
++const ENV_MAGIC: [u8; 4] = *b"EnvB";
++
++/// Command line arguments list
++const ARGS_MAGIC: [u8; 4] = *b"ArgL";
++
++/// Magic number indicating the loader has passed application parameters
++const PARAMS_MAGIC: [u8; 4] = *b"AppP";
++
++pub(crate) struct ApplicationParameters {
++    data: &'static [u8],
++    offset: usize,
++    _entries: usize,
++}
++
++impl ApplicationParameters {
++    pub(crate) unsafe fn new_from_ptr(data: *const u8) -> Option<ApplicationParameters> {
++        if data.is_null() {
++            return None;
++        }
++
++        let magic = unsafe { core::slice::from_raw_parts(data, 4) };
++        let block_length = unsafe {
++            u32::from_le_bytes(slice::from_raw_parts(data.add(4), 4).try_into().ok()?) as usize
++        };
++        let data_length = unsafe {
++            u32::from_le_bytes(slice::from_raw_parts(data.add(8), 4).try_into().ok()?) as usize
++        };
++        let entries = unsafe {
++            u32::from_le_bytes(slice::from_raw_parts(data.add(12), 4).try_into().ok()?) as usize
++        };
++
++        // Check for the main header
++        if data_length < 16 || magic != PARAMS_MAGIC || block_length != 8 {
++            return None;
++        }
++
++        let data = unsafe { slice::from_raw_parts(data, data_length) };
++
++        Some(ApplicationParameters { data, offset: 0, _entries: entries })
++    }
++}
++
++impl Iterator for ApplicationParameters {
++    type Item = ApplicationParameter;
++
++    fn next(&mut self) -> Option<Self::Item> {
++        // Fetch magic, ensuring we don't run off the end
++        if self.offset + 4 > self.data.len() {
++            return None;
++        }
++        let magic = &self.data[self.offset..self.offset + 4];
++        self.offset += 4;
++
++        // Fetch header size
++        if self.offset + 4 > self.data.len() {
++            return None;
++        }
++        let size = u32::from_le_bytes(self.data[self.offset..self.offset + 4].try_into().unwrap())
++            as usize;
++        self.offset += 4;
++
++        // Fetch data contents
++        if self.offset + size > self.data.len() {
++            return None;
++        }
++        let data = &self.data[self.offset..self.offset + size];
++        self.offset += size;
++
++        Some(ApplicationParameter { data, magic: magic.try_into().unwrap() })
++    }
++}
++
++pub(crate) struct ApplicationParameter {
++    data: &'static [u8],
++    magic: [u8; 4],
++}
++
++pub(crate) struct ApplicationParameterError;
++
++pub(crate) struct EnvironmentBlock {
++    _count: usize,
++    data: &'static [u8],
++    offset: usize,
++}
++
++impl TryFrom<&ApplicationParameter> for EnvironmentBlock {
++    type Error = ApplicationParameterError;
++
++    fn try_from(value: &ApplicationParameter) -> Result<Self, Self::Error> {
++        if value.data.len() < 2 || value.magic != ENV_MAGIC {
++            return Err(ApplicationParameterError);
++        }
++
++        let count = u16::from_le_bytes(value.data[0..2].try_into().unwrap()) as usize;
++
++        Ok(EnvironmentBlock { data: &value.data[2..], offset: 0, _count: count })
++    }
++}
++
++pub(crate) struct EnvironmentEntry {
++    pub key: &'static str,
++    pub value: &'static str,
++}
++
++impl Iterator for EnvironmentBlock {
++    type Item = EnvironmentEntry;
++
++    fn next(&mut self) -> Option<Self::Item> {
++        if self.offset + 2 > self.data.len() {
++            return None;
++        }
++        let key_len =
++            u16::from_le_bytes(self.data[self.offset..self.offset + 2].try_into().ok()?) as usize;
++        self.offset += 2;
++
++        if self.offset + key_len > self.data.len() {
++            return None;
++        }
++        let key = core::str::from_utf8(&self.data[self.offset..self.offset + key_len]).ok()?;
++        self.offset += key_len;
++
++        if self.offset + 2 > self.data.len() {
++            return None;
++        }
++        let value_len =
++            u16::from_le_bytes(self.data[self.offset..self.offset + 2].try_into().ok()?) as usize;
++        self.offset += 2;
++
++        if self.offset + value_len > self.data.len() {
++            return None;
++        }
++        let value = core::str::from_utf8(&self.data[self.offset..self.offset + value_len]).ok()?;
++        self.offset += value_len;
++
++        Some(EnvironmentEntry { key, value })
++    }
++}
++
++pub(crate) struct ArgumentList {
++    data: &'static [u8],
++    _count: usize,
++    offset: usize,
++}
++
++impl TryFrom<&ApplicationParameter> for ArgumentList {
++    type Error = ApplicationParameterError;
++
++    fn try_from(value: &ApplicationParameter) -> Result<Self, Self::Error> {
++        if value.data.len() < 2 || value.magic != ARGS_MAGIC {
++            return Err(ApplicationParameterError);
++        }
++        let count =
++            u16::from_le_bytes(value.data[0..2].try_into().or(Err(ApplicationParameterError))?)
++                as usize;
++        Ok(ArgumentList { data: &value.data[2..], _count: count, offset: 0 })
++    }
++}
++
++pub(crate) struct ArgumentEntry {
++    value: &'static str,
++}
++
++impl Into<&str> for ArgumentEntry {
++    fn into(self) -> &'static str {
++        self.value
++    }
++}
++
++impl Into<OsString> for ArgumentEntry {
++    fn into(self) -> OsString {
++        self.value.into()
++    }
++}
++
++impl Iterator for ArgumentList {
++    type Item = ArgumentEntry;
++
++    fn next(&mut self) -> Option<Self::Item> {
++        if self.offset + 2 > self.data.len() {
++            return None;
++        }
++        let value_len =
++            u16::from_le_bytes(self.data[self.offset..self.offset + 2].try_into().ok()?) as usize;
++        self.offset += 2;
++
++        if self.offset + value_len > self.data.len() {
++            return None;
++        }
++        let value = core::str::from_utf8(&self.data[self.offset..self.offset + value_len]).ok()?;
++        self.offset += value_len;
++
++        Some(ArgumentEntry { value })
++    }
++}
+diff --git a/library/std/src/sys/pal/xous/os/params/test.rs b/library/std/src/sys/pal/xous/os/params/test.rs
+new file mode 100644
+index 00000000000..2586e722d53
+--- /dev/null
++++ b/library/std/src/sys/pal/xous/os/params/test.rs
+@@ -0,0 +1,74 @@
++use super::*;
++use crate::{collections::HashMap, io::Write};
++
++fn create_args_test() -> std::io::Result<Vec<u8>> {
++    let mut sample_data = vec![];
++    let mut h = HashMap::new();
++
++    h.insert("foo", "bar");
++    h.insert("baz", "qux");
++    h.insert("some", "val");
++
++    // Magic number
++    sample_data.write_all(&PARAMS_MAGIC)?;
++    // Size of the AppP block
++    sample_data.write_all(&4u32.to_le_bytes())?;
++    // Number of blocks
++    sample_data.write_all(&2u32.to_le_bytes())?;
++
++    // Magic number
++    sample_data.write_all(&ENV_MAGIC)?;
++    let mut data = vec![];
++    for (key, value) in h.iter() {
++        data.extend_from_slice(&(key.len() as u16).to_le_bytes());
++        data.extend_from_slice(key.as_bytes());
++        data.extend_from_slice(&(value.len() as u16).to_le_bytes());
++        data.extend_from_slice(value.as_bytes());
++    }
++    // Size of the EnvB block
++    sample_data.write_all(&(data.len() as u32 + 2).to_le_bytes())?;
++
++    // Number of environment variables
++    sample_data.write_all(&(h.len() as u16).to_le_bytes())?;
++
++    // Environment variables
++    sample_data.write_all(&data)?;
++
++    // Write command line arguments
++    let args = vec!["some", "command", "line variable", "entries"];
++    sample_data.write_all(&ARGS_MAGIC)?;
++    let mut args_size = 0;
++    for entry in args.iter() {
++        args_size += entry.len() + 2;
++    }
++    sample_data.write_all(&(args_size as u32 + 2).to_le_bytes())?;
++    sample_data.write_all(&(args.len() as u16).to_le_bytes())?;
++    for entry in args {
++        sample_data.write_all(&(entry.len() as u16).to_le_bytes())?;
++        sample_data.write_all(entry.as_bytes())?;
++    }
++
++    Ok(sample_data)
++}
++
++#[test]
++fn basic_arg_parsing() {
++    let arg_data = create_args_test().expect("couldn't create test data");
++    for byte in &arg_data {
++        print!("{:02x} ", byte);
++    }
++    println!();
++
++    let args = ApplicationParameters::new(&arg_data).expect("Unable to parse arguments");
++    for arg in args {
++        if let Ok(env) = EnvironmentBlock::try_from(&arg) {
++            for env in env {
++                println!("{}={}", env.key, env.value);
++            }
++        } else if let Ok(args) = ArgumentList::try_from(&arg) {
++            for arg in args {
++                println!("Arg: {}", arg.value);
++            }
++        }
++    }
++}
+-- 
+2.40.0.windows.1
+
