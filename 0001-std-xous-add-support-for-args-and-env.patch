@@ -1,7 +1,7 @@
-From 976e67fc0b0803587d0fea0b08502c79d68edddb Mon Sep 17 00:00:00 2001
+From 4d47d56572e3165778c37b9e1395129b2cd2a942 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Sun, 7 Jan 2024 22:49:22 +0800
-Subject: [PATCH 4/4] std: xous: add support for args and env
+Subject: [PATCH 1/6] std: xous: add support for args and env
 
 Process arguments and environment variables are both passed by way of
 Application Parameters. These are a TLV format that gets passed in as
@@ -13,13 +13,16 @@ Signed-off-by: Sean Cross <sean@xobs.io>
 ---
  library/std/src/sys/pal/xous/args.rs          |  52 ++++
  library/std/src/sys/pal/xous/mod.rs           |   1 -
- library/std/src/sys/pal/xous/os.rs            | 148 ++++++++--
+ library/std/src/sys/pal/xous/os.rs            | 138 +++++++--
  library/std/src/sys/pal/xous/os/params.rs     | 267 ++++++++++++++++++
  .../std/src/sys/pal/xous/os/params/test.rs    |  74 +++++
- 5 files changed, 510 insertions(+), 32 deletions(-)
+ library/std/src/sys/path/mod.rs               |   3 +
+ library/std/src/sys/path/xous.rs              |  72 +++++
+ 7 files changed, 575 insertions(+), 32 deletions(-)
  create mode 100644 library/std/src/sys/pal/xous/args.rs
  create mode 100644 library/std/src/sys/pal/xous/os/params.rs
  create mode 100644 library/std/src/sys/pal/xous/os/params/test.rs
+ create mode 100644 library/std/src/sys/path/xous.rs
 
 diff --git a/library/std/src/sys/pal/xous/args.rs b/library/std/src/sys/pal/xous/args.rs
 new file mode 100644
@@ -80,7 +83,7 @@ index 00000000000..a2db3ae52a0
 +    }
 +}
 diff --git a/library/std/src/sys/pal/xous/mod.rs b/library/std/src/sys/pal/xous/mod.rs
-index 8a59005eece..f59eb6e36a6 100644
+index 7914a255aea..11e8aaf6908 100644
 --- a/library/std/src/sys/pal/xous/mod.rs
 +++ b/library/std/src/sys/pal/xous/mod.rs
 @@ -1,7 +1,6 @@
@@ -92,7 +95,7 @@ index 8a59005eece..f59eb6e36a6 100644
  #[path = "../unsupported/env.rs"]
  pub mod env;
 diff --git a/library/std/src/sys/pal/xous/os.rs b/library/std/src/sys/pal/xous/os.rs
-index 8d2eaee8aa6..0779559b245 100644
+index 8d2eaee8aa6..f27b6dbefd8 100644
 --- a/library/std/src/sys/pal/xous/os.rs
 +++ b/library/std/src/sys/pal/xous/os.rs
 @@ -1,4 +1,5 @@
@@ -101,7 +104,7 @@ index 8d2eaee8aa6..0779559b245 100644
  use crate::error::Error as StdError;
  use crate::ffi::{OsStr, OsString};
  use crate::fmt;
-@@ -6,25 +7,38 @@
+@@ -6,25 +7,33 @@
  use crate::marker::PhantomData;
  use crate::os::xous::ffi::Error as XousError;
  use crate::path::{self, PathBuf};
@@ -130,11 +133,6 @@ index 8d2eaee8aa6..0779559b245 100644
 +    pub(crate) struct EhFrameFinder;
 +    pub(crate) static mut EH_FRAME_ADDRESS: usize = 0;
 +    pub(crate) static EH_FRAME_SETTINGS: EhFrameFinder = EhFrameFinder;
-+    // impl EhFrameFinder {
-+    //     pub fn new(frame: usize) -> Self {
-+    //         EhFrameFinder(frame)
-+    //     }
-+    // }
 +
      unsafe impl unwind::EhFrameFinder for EhFrameFinder {
          fn find(&self, _pc: usize) -> Option<unwind::FrameInfo> {
@@ -153,7 +151,7 @@ index 8d2eaee8aa6..0779559b245 100644
          }
      }
  }
-@@ -42,12 +56,21 @@ pub extern "C" fn abort() {
+@@ -42,12 +51,21 @@ pub extern "C" fn abort() {
      }
  
      #[no_mangle]
@@ -168,7 +166,7 @@ index 8d2eaee8aa6..0779559b245 100644
          }
 +
 +        if params_address != 0 {
-+            let params_address = core::ptr::from_exposed_addr_mut::<u8>(params_address);
++            let params_address = crate::ptr::with_exposed_provenance_mut::<u8>(params_address);
 +            if unsafe {
 +                super::params::ApplicationParameters::new_from_ptr(params_address).is_some()
 +            } {
@@ -178,7 +176,7 @@ index 8d2eaee8aa6..0779559b245 100644
          exit(unsafe { main() });
      }
  
-@@ -117,44 +140,107 @@ pub fn current_exe() -> io::Result<PathBuf> {
+@@ -117,44 +135,102 @@ pub fn current_exe() -> io::Result<PathBuf> {
      unsupported()
  }
  
@@ -195,13 +193,10 @@ index 8d2eaee8aa6..0779559b245 100644
 +
 +fn get_env_store() -> &'static EnvStore {
 +    ENV_INIT.call_once(|| {
-+        println!("Creating initial store");
 +        let env_store = EnvStore::default();
 +        if let Some(params) = get_application_parameters() {
 +            for param in params {
-+                println!("Checking param for env block...");
 +                if let Ok(envs) = params::EnvironmentBlock::try_from(&param) {
-+                    println!("Found env block!");
 +                    let mut env_store = env_store.lock().unwrap();
 +                    for env in envs {
 +                        env_store.insert(env.key.into(), env.value.into());
@@ -209,12 +204,10 @@ index 8d2eaee8aa6..0779559b245 100644
 +                    break;
 +                }
 +            }
-+        } else {
-+            println!("Application parameters were NULL");
 +        }
 +        ENV.store(Box::into_raw(Box::new(env_store)) as _, Ordering::Relaxed)
 +    });
-+    unsafe { &*core::ptr::from_exposed_addr::<EnvStore>(ENV.load(Ordering::Relaxed)) }
++    unsafe { &*core::ptr::with_exposed_provenance::<EnvStore>(ENV.load(Ordering::Relaxed)) }
 +}
 +
 +pub struct Env {
@@ -653,6 +646,98 @@ index 00000000000..2586e722d53
 +            }
 +        }
 +    }
++}
+diff --git a/library/std/src/sys/path/mod.rs b/library/std/src/sys/path/mod.rs
+index 24a94ec7828..c501416f718 100644
+--- a/library/std/src/sys/path/mod.rs
++++ b/library/std/src/sys/path/mod.rs
+@@ -11,6 +11,9 @@
+     ))] {
+         mod unsupported_backslash;
+         pub use unsupported_backslash::*;
++    } else if #[cfg(target_os = "xous")] {
++        mod xous;
++        pub use xous::*;
+     } else {
+         mod unix;
+         pub use unix::*;
+diff --git a/library/std/src/sys/path/xous.rs b/library/std/src/sys/path/xous.rs
+new file mode 100644
+index 00000000000..262bfe5985c
+--- /dev/null
++++ b/library/std/src/sys/path/xous.rs
+@@ -0,0 +1,72 @@
++use crate::ffi::OsStr;
++use crate::io;
++use crate::path::{Path, PathBuf, Prefix};
++
++#[inline]
++pub fn is_sep_byte(b: u8) -> bool {
++    b == b':'
++}
++
++#[inline]
++pub fn is_verbatim_sep(b: u8) -> bool {
++    b == b':'
++}
++
++#[inline]
++pub fn parse_prefix(_: &OsStr) -> Option<Prefix<'_>> {
++    None
++}
++
++pub const MAIN_SEP_STR: &str = ":";
++pub const MAIN_SEP: char = ':';
++
++/// Make a POSIX path absolute without changing its semantics.
++pub(crate) fn absolute(path: &Path) -> io::Result<PathBuf> {
++    Ok(path.to_owned())
++}
++
++/// Split a path into its constituant Basis and Dict, if the path is legal.
++pub(crate) fn split_basis_and_dict<'a, F: Fn() -> Option<&'a str>>(
++    src: &'a str,
++    default: F,
++) -> Result<(Option<&'a str>, Option<&'a str>), ()> {
++    let mut basis = None;
++    let dict;
++    if let Some(src) = src.strip_prefix(crate::path::MAIN_SEPARATOR) {
++        if let Some((maybe_basis, maybe_dict)) = src.split_once(crate::path::MAIN_SEPARATOR) {
++            if !maybe_basis.is_empty() {
++                basis = Some(maybe_basis);
++            } else {
++                basis = default();
++            }
++
++            if maybe_dict.is_empty() {
++                dict = None;
++            } else {
++                dict = Some(maybe_dict);
++            }
++        } else {
++            if !src.is_empty() {
++                basis = Some(src);
++            }
++            dict = None;
++        }
++    } else {
++        if src.is_empty() {
++            return Ok((basis, Some("")));
++        }
++        dict = Some(src);
++    }
++
++    if let Some(basis) = &basis {
++        if basis.ends_with(crate::path::MAIN_SEPARATOR) {
++            return Err(());
++        }
++    }
++    if let Some(dict) = &dict {
++        if dict.ends_with(crate::path::MAIN_SEPARATOR) {
++            return Err(());
++        }
++    }
++    Ok((basis, dict))
 +}
 -- 
 2.40.0.windows.1

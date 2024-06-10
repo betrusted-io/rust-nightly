@@ -1,0 +1,46 @@
+From baca305dd5e6541c23882a46eca0f85411a25750 Mon Sep 17 00:00:00 2001
+From: Sean Cross <sean@xobs.io>
+Date: Tue, 11 Jun 2024 00:31:32 +0800
+Subject: [PATCH 2/6] net: fix dead code warning
+
+Signed-off-by: Sean Cross <sean@xobs.io>
+---
+ library/std/src/sys/pal/xous/net/dns.rs | 1 +
+ library/std/src/sys/pal/xous/net/mod.rs | 2 ++
+ 2 files changed, 3 insertions(+)
+
+diff --git a/library/std/src/sys/pal/xous/net/dns.rs b/library/std/src/sys/pal/xous/net/dns.rs
+index 63056324bfb..387989df9e9 100644
+--- a/library/std/src/sys/pal/xous/net/dns.rs
++++ b/library/std/src/sys/pal/xous/net/dns.rs
+@@ -5,6 +5,7 @@
+ use core::convert::{TryFrom, TryInto};
+ 
+ pub struct DnsError {
++    #[allow(dead_code)]
+     pub code: u8,
+ }
+ 
+diff --git a/library/std/src/sys/pal/xous/net/mod.rs b/library/std/src/sys/pal/xous/net/mod.rs
+index dd8b765aa74..3e18ed24208 100644
+--- a/library/std/src/sys/pal/xous/net/mod.rs
++++ b/library/std/src/sys/pal/xous/net/mod.rs
+@@ -60,6 +60,7 @@ pub struct in_addr {
+ 
+     #[derive(Copy, Clone)]
+     pub struct sockaddr_in {
++        #[allow(dead_code)]
+         pub sin_family: sa_family_t,
+         pub sin_port: u16,
+         pub sin_addr: in_addr,
+@@ -72,6 +73,7 @@ pub struct in6_addr {
+ 
+     #[derive(Copy, Clone)]
+     pub struct sockaddr_in6 {
++        #[allow(dead_code)]
+         pub sin6_family: sa_family_t,
+         pub sin6_port: u16,
+         pub sin6_addr: in6_addr,
+-- 
+2.40.0.windows.1
+

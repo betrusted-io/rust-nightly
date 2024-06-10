@@ -1,7 +1,7 @@
-From e80d417b9ea89ebda50b1f2b6c2b593141a1d0f3 Mon Sep 17 00:00:00 2001
+From adfa2ffaf5c74e398191f7d3c869f599550f1e38 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Tue, 7 Nov 2023 09:53:20 +0800
-Subject: [PATCH 1/4] xous: add senres
+Subject: [PATCH 3/6] xous: add senres
 
 Senres is a method for sending and receiving structs. It is a cut-down
 version of rkyv and similar modules.
@@ -14,10 +14,10 @@ Signed-off-by: Sean Cross <sean@xobs.io>
  create mode 100644 library/std/src/sys/pal/xous/senres.rs
 
 diff --git a/library/std/src/sys/pal/xous/mod.rs b/library/std/src/sys/pal/xous/mod.rs
-index 7914a255aea..8fd26c6046e 100644
+index 11e8aaf6908..237ac31c419 100644
 --- a/library/std/src/sys/pal/xous/mod.rs
 +++ b/library/std/src/sys/pal/xous/mod.rs
-@@ -24,3 +24,5 @@
+@@ -23,3 +23,5 @@
  #[path = "../unsupported/common.rs"]
  mod common;
  pub use common::*;
@@ -25,7 +25,7 @@ index 7914a255aea..8fd26c6046e 100644
 +mod senres;
 diff --git a/library/std/src/sys/pal/xous/senres.rs b/library/std/src/sys/pal/xous/senres.rs
 new file mode 100644
-index 00000000000..5273ccf80cf
+index 00000000000..1f84478aa97
 --- /dev/null
 +++ b/library/std/src/sys/pal/xous/senres.rs
 @@ -0,0 +1,628 @@
@@ -73,7 +73,7 @@ index 00000000000..5273ccf80cf
 +            message_id,
 +            auto_return: true,
 +            data: unsafe {
-+                core::slice::from_raw_parts_mut(core::ptr::from_exposed_addr_mut::<u8>(data), len)
++                core::slice::from_raw_parts_mut(crate::ptr::with_exposed_provenance_mut::<u8>(data), len)
 +            },
 +        })
 +    }

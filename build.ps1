@@ -29,7 +29,7 @@ Function Test-CommandExists {
 #$env:RUST_TARGET_PATH = $(rustc --print sysroot)
 $rust_sysroot = $(rustc --print sysroot)
 
-$env:RUST_COMPILER_RT_ROOT = "$(Get-Location)\src\llvm-project\compiler-rt"
+$env:RUST_COMPILER_RT_ROOT = "$(Get-Location)\rust\src\llvm-project\compiler-rt"
 $env:CARGO_PROFILE_RELEASE_DEBUG = 0
 $env:CARGO_PROFILE_RELEASE_OPT_LEVEL = ""
 $env:CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS = "true"
@@ -59,21 +59,28 @@ else {
     throw "No C compiler found for riscv"
 }
 
-$rustc_hash = $(rustc --version).Split(" ")[1].Split(" ")[0]
+$rustc_version = $(rustc --version).Split(" ")[1]
+$rustc_hash = $(rustc --version).Split("(")[1].Split(" ")[0]
+Write-Output "Building Rust $rustc_version, hash $rustc_hash"
 Set-Location .\rust
-git branch -D build
+Write-Output "git checkout $rustc_hash"
 git checkout $rustc_hash
 if ($LastExitCode -ne 0) {
-    "checkout: git exited $LastExitCode"
+    throw "checkout: git exited $LastExitCode"
 }
+Write-Output "git branch -D build"
+git branch -D build
+Write-Output "git checkout -b build"
 git checkout -b build
 if ($LastExitCode -ne 0) {
-    "branch: git exited $LastExitCode"
+    throw "branch: git exited $LastExitCode"
 }
-git am ../*.patch
+Get-ChildItem ..\*.patch | ForEach-Object { git am $_.FullName }
 if ($LastExitCode -ne 0) {
-    "patch: git exited $LastExitCode"
+    throw "patch: git exited $LastExitCode"
 }
+
+git submodule update --init --recursive
 
 $src_path = ".\target\riscv32imac-unknown-xous-elf\release\deps"
 $dest_path = "$rust_sysroot\lib\rustlib\riscv32imac-unknown-xous-elf"
@@ -91,7 +98,7 @@ if (-Not( Test-Path $dest_lib_path)) {
     New-Item -Path $dest_lib_path -ItemType Directory
 }
 
-Write-Output $rustc_hash | New-Item -Path "$dest_path\RUST_VERSION" -Force
+Write-Output $rustc_version | New-Item -Path "$dest_path\RUST_VERSION" -Force
 
 # Remove stale objects
 Remove-Item "$dest_lib_path\*.rlib"

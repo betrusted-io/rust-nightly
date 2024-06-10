@@ -1,0 +1,38 @@
+From 5d7a525f1c0553a1c34d92df545fdb06fd07b43a Mon Sep 17 00:00:00 2001
+From: Sean Cross <sean@xobs.io>
+Date: Tue, 11 Jun 2024 00:47:52 +0800
+Subject: [PATCH 5/6] fixup pddb
+
+Signed-off-by: Sean Cross <sean@xobs.io>
+---
+ library/std/src/os/xous/services/pddb.rs | 11 -----------
+ 1 file changed, 11 deletions(-)
+
+diff --git a/library/std/src/os/xous/services/pddb.rs b/library/std/src/os/xous/services/pddb.rs
+index 3348c3e17d9..f8459b5bac9 100644
+--- a/library/std/src/os/xous/services/pddb.rs
++++ b/library/std/src/os/xous/services/pddb.rs
+@@ -11,20 +11,9 @@ pub(crate) enum PddbBlockingScalar {
+ 
+ #[repr(usize)]
+ pub(crate) enum PddbLendMut {
+-    // // IsMounted = 0,
+-    // // TryMount = 1,
+-
+-    // // WriteKeyFlush = 18,
+-    // // KeyDrop = 20,
+-
+-    // // ListBasisStd = 26,
+-    // // ListDictStd = 28,
+-    // // ListKeyStd = 29,
+     OpenKeyStd,
+     ReadKeyStd(u16 /* fd */),
+-    // CloseKeyStd = 34,
+     DeleteKeyStd = 35,
+-    // // LatestBasisStd = 36,
+     ListPathStd = 37,
+     StatPathStd = 38,
+ 
+-- 
+2.40.0.windows.1
+
