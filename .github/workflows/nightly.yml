@@ -48,6 +48,11 @@ jobs:
           && mkdir -p $(rustc --print sysroot)/lib/rustlib/riscv32imac-unknown-xous-elf/lib \
           && rustc --version | awk '{print $2}' > $(rustc --print sysroot)/lib/rustlib/riscv32imac-unknown-xous-elf/RUST_VERSION
 
+      - name: Configure fake git credentials
+        run: |
+          git config --global user.email "user@example.com" \
+          && git config --global user.name "CI Runner"
+
       - name: Apply patches
         run: |
           cd build \
