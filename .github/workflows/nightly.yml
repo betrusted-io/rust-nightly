@@ -56,7 +56,6 @@ jobs:
             | cut -d'"' -f4)"
           echo "rustrev=$rustrev" >> $GITHUB_OUTPUT
 
-
       - name: Create riscv32imac-unknown-xous-elf sysroot
         run: |
           rm -rf $(rustc --print sysroot)/lib/rustlib/riscv32imac-unknown-xous-elf \
@@ -67,8 +66,6 @@ jobs:
         run: |
           git config --global user.email "user@example.com" \
           && git config --global user.name "CI Runner"
-
-      - name: Get 
 
       - name: Apply patches
         run: |
