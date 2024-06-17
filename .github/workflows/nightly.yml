@@ -19,13 +19,13 @@ on:
   workflow_dispatch: 
   
 jobs:
-  build-farpatch:
+  build-xous-libstd:
     runs-on: ubuntu-latest
 
     steps:
       - name: Determine Rust version
         shell: bash
-        run: echo "##[set-output name=version;]$(echo ${GITHUB_REF} | cut -d/ -f3 | cut -d- -f1 | cut -d. -f1,2,3)"
+        run: echo "version=nightly" >> $GITHUB_OUTPUT
         id: extract_rust_version
 
       - name: Setup riscv gnu/gcc toolchain
@@ -50,7 +50,7 @@ jobs:
 
       - name: Apply patches
         run: |
-          cd build
+          cd build \
           && git am ../*.patch
 
       - name: Build Rust libstd
