@@ -43,6 +43,7 @@ jobs:
 
       - name: Determine nightly hash
         shell: bash
+        id: determine_nightly_hash
         run: |
           export rustrevshort="$(rustc --version | awk -F '[( ]+' '{print $3}')"
           echo "rustrevshort=$rustrevshort" >> $GITHUB_OUTPUT
@@ -67,18 +68,18 @@ jobs:
           git config --global user.email "user@example.com" \
           && git config --global user.name "CI Runner"
 
-      - name: Apply patches
+      - name: Apply patches to ${{ steps.determine_nightly_hash.outputs.rustrevshort }}
         run: |
           pwd \
           && ls \
           && cd build \
-          && echo "rustrev: $rustrev" \
+          && echo "rustrev: ${{ steps.determine_nightly_hash.outputs.rustrev }}" \
           && git init rust \
           && cd rust \
           && git remote add origin https://github.com/rust-lang/rust \
           && git config --local gc.auto 0 \
-          && git -c protocol.version=2 fetch --no-tags --prune --progress --recurse-submodules --depth=1 origin $rustrev \
-          && git checkout -B master $rustrev \
+          && git -c protocol.version=2 fetch --no-tags --prune --progress --recurse-submodules --depth=1 origin ${{ steps.determine_nightly_hash.outputs.rustrev }} \
+          && git checkout -B master ${{ steps.determine_nightly_hash.outputs.rustrev }} \
           && git submodule sync --recursive \
           && git -c protocol.version=2 submodule update --init --force --depth=1 --recursive \
           && ls \
