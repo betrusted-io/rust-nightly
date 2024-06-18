@@ -1,4 +1,4 @@
-From 4d47d56572e3165778c37b9e1395129b2cd2a942 Mon Sep 17 00:00:00 2001
+From e61d03dc7765931e8257df4d263219fceb40faaa Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Sun, 7 Jan 2024 22:49:22 +0800
 Subject: [PATCH 1/6] std: xous: add support for args and env
@@ -13,12 +13,12 @@ Signed-off-by: Sean Cross <sean@xobs.io>
 ---
  library/std/src/sys/pal/xous/args.rs          |  52 ++++
  library/std/src/sys/pal/xous/mod.rs           |   1 -
- library/std/src/sys/pal/xous/os.rs            | 138 +++++++--
+ library/std/src/sys/pal/xous/os.rs            | 137 +++++++--
  library/std/src/sys/pal/xous/os/params.rs     | 267 ++++++++++++++++++
  .../std/src/sys/pal/xous/os/params/test.rs    |  74 +++++
  library/std/src/sys/path/mod.rs               |   3 +
  library/std/src/sys/path/xous.rs              |  72 +++++
- 7 files changed, 575 insertions(+), 32 deletions(-)
+ 7 files changed, 575 insertions(+), 31 deletions(-)
  create mode 100644 library/std/src/sys/pal/xous/args.rs
  create mode 100644 library/std/src/sys/pal/xous/os/params.rs
  create mode 100644 library/std/src/sys/pal/xous/os/params/test.rs
@@ -83,7 +83,7 @@ index 00000000000..a2db3ae52a0
 +    }
 +}
 diff --git a/library/std/src/sys/pal/xous/mod.rs b/library/std/src/sys/pal/xous/mod.rs
-index 7914a255aea..11e8aaf6908 100644
+index 68189bcc2e3..1e45aefba8d 100644
 --- a/library/std/src/sys/pal/xous/mod.rs
 +++ b/library/std/src/sys/pal/xous/mod.rs
 @@ -1,7 +1,6 @@
@@ -95,7 +95,7 @@ index 7914a255aea..11e8aaf6908 100644
  #[path = "../unsupported/env.rs"]
  pub mod env;
 diff --git a/library/std/src/sys/pal/xous/os.rs b/library/std/src/sys/pal/xous/os.rs
-index 8d2eaee8aa6..f27b6dbefd8 100644
+index 9be09eed629..398c1ba4584 100644
 --- a/library/std/src/sys/pal/xous/os.rs
 +++ b/library/std/src/sys/pal/xous/os.rs
 @@ -1,4 +1,5 @@
@@ -176,7 +176,7 @@ index 8d2eaee8aa6..f27b6dbefd8 100644
          exit(unsafe { main() });
      }
  
-@@ -117,44 +135,102 @@ pub fn current_exe() -> io::Result<PathBuf> {
+@@ -117,44 +135,103 @@ pub fn current_exe() -> io::Result<PathBuf> {
      unsupported()
  }
  
@@ -229,7 +229,7 @@ index 8d2eaee8aa6..f27b6dbefd8 100644
 +}
  
  impl Env {
--    // FIXME(https://github.com/rust-lang/rust/issues/114583): Remove this when <OsStr as Debug>::fmt matches <str as Debug>::fmt.
+     // FIXME(https://github.com/rust-lang/rust/issues/114583): Remove this when <OsStr as Debug>::fmt matches <str as Debug>::fmt.
      pub fn str_debug(&self) -> impl fmt::Debug + '_ {
 -        let Self(inner) = self;
 -        match *inner {}
@@ -278,17 +278,17 @@ index 8d2eaee8aa6..f27b6dbefd8 100644
 +    get_env_store().lock().unwrap().get(k).cloned()
  }
  
--pub fn setenv(_: &OsStr, _: &OsStr) -> io::Result<()> {
+-pub unsafe fn setenv(_: &OsStr, _: &OsStr) -> io::Result<()> {
 -    Err(io::const_io_error!(io::ErrorKind::Unsupported, "cannot set env vars on this platform"))
-+pub fn setenv(k: &OsStr, v: &OsStr) -> io::Result<()> {
++pub unsafe fn setenv(k: &OsStr, v: &OsStr) -> io::Result<()> {
 +    let (k, v) = (k.to_owned(), v.to_owned());
 +    get_env_store().lock().unwrap().insert(k, v);
 +    Ok(())
  }
  
--pub fn unsetenv(_: &OsStr) -> io::Result<()> {
+-pub unsafe fn unsetenv(_: &OsStr) -> io::Result<()> {
 -    Err(io::const_io_error!(io::ErrorKind::Unsupported, "cannot unset env vars on this platform"))
-+pub fn unsetenv(k: &OsStr) -> io::Result<()> {
++pub unsafe fn unsetenv(k: &OsStr) -> io::Result<()> {
 +    get_env_store().lock().unwrap().remove(k);
 +    Ok(())
  }
@@ -740,5 +740,5 @@ index 00000000000..262bfe5985c
 +    Ok((basis, dict))
 +}
 -- 
-2.40.0.windows.1
+2.45.0
 

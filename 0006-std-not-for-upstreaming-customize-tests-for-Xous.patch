@@ -1,4 +1,4 @@
-From 0d7372b0188d01e82568935031ae9afe80f1e21d Mon Sep 17 00:00:00 2001
+From e81b67fff4a85d5a4864acb316c544d164801ce7 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Sun, 24 Dec 2023 15:15:01 +0800
 Subject: [PATCH 6/6] std: (not for upstreaming) customize tests for Xous
@@ -31,7 +31,7 @@ index 8585376abc1..c77e7e8bb00 100644
          for i in 1..count {
              assert!(m.insert(i, i).is_none());
 diff --git a/library/std/src/io/tests.rs b/library/std/src/io/tests.rs
-index 090a091b09a..75743cad5c4 100644
+index a2c1c430863..9a1976b91bb 100644
 --- a/library/std/src/io/tests.rs
 +++ b/library/std/src/io/tests.rs
 @@ -359,6 +359,7 @@ fn chain_zero_length_read_is_not_eof() {
@@ -136,5 +136,5 @@ index 6ed84806e6d..af247b74cf0 100644
                      let new = Instant::now();
                      assert!(new >= old);
 -- 
-2.40.0.windows.1
+2.45.0
 

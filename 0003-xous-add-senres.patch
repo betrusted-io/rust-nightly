@@ -1,4 +1,4 @@
-From adfa2ffaf5c74e398191f7d3c869f599550f1e38 Mon Sep 17 00:00:00 2001
+From 44748657b07b73133ceeb4f32199e6840b8eb36c Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Tue, 7 Nov 2023 09:53:20 +0800
 Subject: [PATCH 3/6] xous: add senres
@@ -14,10 +14,10 @@ Signed-off-by: Sean Cross <sean@xobs.io>
  create mode 100644 library/std/src/sys/pal/xous/senres.rs
 
 diff --git a/library/std/src/sys/pal/xous/mod.rs b/library/std/src/sys/pal/xous/mod.rs
-index 11e8aaf6908..237ac31c419 100644
+index 1e45aefba8d..a1210f34854 100644
 --- a/library/std/src/sys/pal/xous/mod.rs
 +++ b/library/std/src/sys/pal/xous/mod.rs
-@@ -23,3 +23,5 @@
+@@ -22,3 +22,5 @@
  #[path = "../unsupported/common.rs"]
  mod common;
  pub use common::*;
@@ -658,5 +658,5 @@ index 00000000000..1f84478aa97
 +    }
 +}
 -- 
-2.40.0.windows.1
+2.45.0
 
