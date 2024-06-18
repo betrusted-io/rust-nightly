@@ -71,7 +71,7 @@ jobs:
       - name: Check out rust version ${{ steps.determine_nightly_hash.outputs.rustrevshort }}
         working-directory: build
         run: |
-          && echo "rustrev: ${{ steps.determine_nightly_hash.outputs.rustrev }}" \
+          echo "rustrev: ${{ steps.determine_nightly_hash.outputs.rustrev }}" \
           && git init rust \
           && cd rust \
           && git remote add origin https://github.com/rust-lang/rust \
@@ -83,13 +83,12 @@ jobs:
 
       - name: Apply patches to ${{ steps.determine_nightly_hash.outputs.rustrevshort }}
         working-directory: build/rust
-        run: |
-          && git am ../*.patch
+        run: git am ../*.patch
 
       - name: Build Rust libstd for xous
         working-directory: build/rust
         run: |
-          && export RUST_COMPILER_RT_ROOT=$(pwd)/src/llvm-project/compiler-rt \
+          export RUST_COMPILER_RT_ROOT=$(pwd)/src/llvm-project/compiler-rt \
           && rm -rf target \
           && cargo build \
             --target riscv32imac-unknown-xous-elf \
