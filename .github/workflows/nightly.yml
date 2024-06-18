@@ -31,6 +31,17 @@ jobs:
       - name: Setup riscv gnu/gcc toolchain
         uses: gregdavill/setup-riscv-gnu-toolchain@v2
 
+      - name: Add riscv gnu/gcc toolchain to the path
+        shell: bash
+        run: |
+          echo "=== $RUNNER_TEMP/.setup-riscv-gnu-toolchain/bin:"
+          ls -la $RUNNER_TEMP/.setup-riscv-gnu-toolchain/bin
+
+          echo "=== $RUNNER_TEMP/.setup-riscv-gnu-toolchain/riscv-none-elf/bin:"
+          ls -la $RUNNER_TEMP/.setup-riscv-gnu-toolchain/riscv-none-elf/bin
+
+          echo "${RUNNER_TEMP}/.setup-riscv-gnu-toolchain/bin" >> $GITHUB_PATH
+
       - name: Checkout repo
         uses: actions/checkout@v2
         with:
