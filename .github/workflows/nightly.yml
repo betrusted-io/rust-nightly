@@ -85,13 +85,13 @@ jobs:
       - name: Apply patches to ${{ steps.determine_nightly_hash.outputs.rustrevshort }}
         run: |
           pwd \
-          && cd build \
+          && cd build/rust \
           && git am ../*.patch
 
       - name: Build Rust libstd
         run: |
           pwd \
-          && cd build \
+          && cd build/rust \
           && export RUST_COMPILER_RT_ROOT=$(pwd)/src/llvm-project/compiler-rt \
           && rm -rf target \
           && cargo build \
