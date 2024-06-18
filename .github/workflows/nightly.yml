@@ -68,10 +68,9 @@ jobs:
           git config --global user.email "user@example.com" \
           && git config --global user.name "CI Runner"
 
-      - name: Apply patches to ${{ steps.determine_nightly_hash.outputs.rustrevshort }}
+      - name: Check out rust version ${{ steps.determine_nightly_hash.outputs.rustrevshort }}
         run: |
           pwd \
-          && ls \
           && cd build \
           && echo "rustrev: ${{ steps.determine_nightly_hash.outputs.rustrev }}" \
           && git init rust \
@@ -81,14 +80,19 @@ jobs:
           && git -c protocol.version=2 fetch --no-tags --prune --progress --recurse-submodules --depth=1 origin ${{ steps.determine_nightly_hash.outputs.rustrev }} \
           && git checkout -B master ${{ steps.determine_nightly_hash.outputs.rustrev }} \
           && git submodule sync --recursive \
-          && git -c protocol.version=2 submodule update --init --force --depth=1 --recursive \
-          && ls \
-          && ls .. \
+          && git -c protocol.version=2 submodule update --init --force --depth=1 --recursive
+
+      - name: Apply patches to ${{ steps.determine_nightly_hash.outputs.rustrevshort }}
+        run: |
+          pwd \
+          && cd build \
           && git am ../*.patch
 
       - name: Build Rust libstd
         run: |
-          export RUST_COMPILER_RT_ROOT=$(pwd)/src/llvm-project/compiler-rt \
+          pwd \
+          && cd build \
+          && export RUST_COMPILER_RT_ROOT=$(pwd)/src/llvm-project/compiler-rt \
           && rm -rf target \
           && cargo build \
             --target riscv32imac-unknown-xous-elf \
