@@ -89,7 +89,6 @@ jobs:
         working-directory: build/rust
         run: |
           export RUST_COMPILER_RT_ROOT=$(pwd)/src/llvm-project/compiler-rt \
-          && export PATH=${RUNNER_TEMP}/.setup-riscv-gnu-toolchain/bin:$PATH \
           && rm -rf target \
           && cargo build \
             --target riscv32imac-unknown-xous-elf \
@@ -106,5 +105,5 @@ jobs:
           RUSTC_BOOTSTRAP: 1
           RUSTFLAGS: -Cforce-unwind-tables=yes -Cembed-bitcode=yes
           __CARGO_DEFAULT_LIB_METADATA: stablestd
-          CC: riscv-none-embed-gcc
-          AR: riscv-none-embed-ar
+          CC: riscv-none-elf-gcc
+          AR: riscv-none-elf-ar
