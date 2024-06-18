@@ -29,7 +29,7 @@ jobs:
         id: extract_rust_version
 
       - name: Setup riscv gnu/gcc toolchain
-        uses: gregdavill/setup-riscv-gnu-toolchain@v1.0
+        uses: gregdavill/setup-riscv-gnu-toolchain@v2
 
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -69,9 +69,8 @@ jobs:
           && git config --global user.name "CI Runner"
 
       - name: Check out rust version ${{ steps.determine_nightly_hash.outputs.rustrevshort }}
+        working-directory: build
         run: |
-          pwd \
-          && cd build \
           && echo "rustrev: ${{ steps.determine_nightly_hash.outputs.rustrev }}" \
           && git init rust \
           && cd rust \
@@ -83,15 +82,13 @@ jobs:
           && git -c protocol.version=2 submodule update --init --force --depth=1 --recursive
 
       - name: Apply patches to ${{ steps.determine_nightly_hash.outputs.rustrevshort }}
+        working-directory: build/rust
         run: |
-          pwd \
-          && cd build/rust \
           && git am ../*.patch
 
-      - name: Build Rust libstd
+      - name: Build Rust libstd for xous
+        working-directory: build/rust
         run: |
-          pwd \
-          && cd build/rust \
           && export RUST_COMPILER_RT_ROOT=$(pwd)/src/llvm-project/compiler-rt \
           && rm -rf target \
           && cargo build \
