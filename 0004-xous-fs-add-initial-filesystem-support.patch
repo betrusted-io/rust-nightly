@@ -1,7 +1,7 @@
-From 6e30c0131bf5f08b7b2379d2a2717040edc95abf Mon Sep 17 00:00:00 2001
+From 18e24b6011d6849c94989f9b81237acc2a6926c7 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Tue, 7 Nov 2023 10:41:10 +0800
-Subject: [PATCH 4/6] xous: fs: add initial filesystem support
+Subject: [PATCH 4/5] xous: fs: add initial filesystem support
 
 Signed-off-by: Sean Cross <sean@xobs.io>
 ---
@@ -9,10 +9,10 @@ Signed-off-by: Sean Cross <sean@xobs.io>
  library/std/src/os/xous/mod.rs           |   3 +
  library/std/src/os/xous/path.rs          |  42 ++
  library/std/src/os/xous/services.rs      |   3 +
- library/std/src/os/xous/services/pddb.rs |  99 ++++
+ library/std/src/os/xous/services/pddb.rs |  88 ++++
  library/std/src/sys/pal/xous/fs.rs       | 629 +++++++++++++++++++++++
  library/std/src/sys/pal/xous/mod.rs      |   1 -
- 7 files changed, 809 insertions(+), 1 deletion(-)
+ 7 files changed, 798 insertions(+), 1 deletion(-)
  create mode 100644 library/std/src/os/xous/fs.rs
  create mode 100644 library/std/src/os/xous/path.rs
  create mode 100644 library/std/src/os/xous/services/pddb.rs
@@ -135,10 +135,10 @@ index a75be1b8570..2ccf1a5d698 100644
  
 diff --git a/library/std/src/os/xous/services/pddb.rs b/library/std/src/os/xous/services/pddb.rs
 new file mode 100644
-index 00000000000..3348c3e17d9
+index 00000000000..f8459b5bac9
 --- /dev/null
 +++ b/library/std/src/os/xous/services/pddb.rs
-@@ -0,0 +1,99 @@
+@@ -0,0 +1,88 @@
 +use crate::io::SeekFrom;
 +use crate::os::xous::ffi::Connection;
 +use crate::os::xous::services::connect;
@@ -152,20 +152,9 @@ index 00000000000..3348c3e17d9
 +
 +#[repr(usize)]
 +pub(crate) enum PddbLendMut {
-+    // // IsMounted = 0,
-+    // // TryMount = 1,
-+
-+    // // WriteKeyFlush = 18,
-+    // // KeyDrop = 20,
-+
-+    // // ListBasisStd = 26,
-+    // // ListDictStd = 28,
-+    // // ListKeyStd = 29,
 +    OpenKeyStd,
 +    ReadKeyStd(u16 /* fd */),
-+    // CloseKeyStd = 34,
 +    DeleteKeyStd = 35,
-+    // // LatestBasisStd = 36,
 +    ListPathStd = 37,
 +    StatPathStd = 38,
 +
@@ -240,7 +229,7 @@ index 00000000000..3348c3e17d9
 +}
 diff --git a/library/std/src/sys/pal/xous/fs.rs b/library/std/src/sys/pal/xous/fs.rs
 new file mode 100644
-index 00000000000..45f5178e2bf
+index 00000000000..fb2182e2091
 --- /dev/null
 +++ b/library/std/src/sys/pal/xous/fs.rs
 @@ -0,0 +1,629 @@
@@ -258,7 +247,7 @@ index 00000000000..45f5178e2bf
 +
 +use super::senres::{self, Senres, SenresMut};
 +
-+pub use crate::sys_common::fs::try_exists;
++pub use crate::sys_common::fs::exists;
 +
 +pub struct File {
 +    fd: u16,

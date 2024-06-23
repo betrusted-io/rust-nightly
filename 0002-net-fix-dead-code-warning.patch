@@ -1,7 +1,7 @@
-From 3e942fe8e9cb8adfe0b2549af9915f0950ad66c4 Mon Sep 17 00:00:00 2001
+From 371adc83436c66ff954c0981c5eb265f00612f57 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Tue, 11 Jun 2024 00:31:32 +0800
-Subject: [PATCH 2/6] net: fix dead code warning
+Subject: [PATCH 2/5] net: fix dead code warning
 
 Signed-off-by: Sean Cross <sean@xobs.io>
 ---

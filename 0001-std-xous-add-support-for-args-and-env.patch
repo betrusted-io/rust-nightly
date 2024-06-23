@@ -1,7 +1,7 @@
-From e61d03dc7765931e8257df4d263219fceb40faaa Mon Sep 17 00:00:00 2001
+From 097d592a0ab86be0758b9c594ece4024289a956e Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Sun, 7 Jan 2024 22:49:22 +0800
-Subject: [PATCH 1/6] std: xous: add support for args and env
+Subject: [PATCH 1/5] std: xous: add support for args and env
 
 Process arguments and environment variables are both passed by way of
 Application Parameters. These are a TLV format that gets passed in as

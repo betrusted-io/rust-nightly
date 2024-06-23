@@ -1,7 +1,7 @@
-From 44748657b07b73133ceeb4f32199e6840b8eb36c Mon Sep 17 00:00:00 2001
+From 1f307892c9a28f3875278bb81747abf2152dd538 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Tue, 7 Nov 2023 09:53:20 +0800
-Subject: [PATCH 3/6] xous: add senres
+Subject: [PATCH 3/5] xous: add senres
 
 Senres is a method for sending and receiving structs. It is a cut-down
 version of rkyv and similar modules.
