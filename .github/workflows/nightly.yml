@@ -13,7 +13,7 @@ on:
     #        │  │  │ │ │
     #        │  │  │ │ │
     #        *  *  * * *
-    - cron: '26 15 * * *'
+    - cron: '32 13 * * *'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch: 
@@ -29,7 +29,7 @@ jobs:
         id: extract_rust_version
 
       - name: Setup riscv gnu/gcc toolchain
-        uses: gregdavill/setup-riscv-gnu-toolchain@v2
+        uses: gregdavill/setup-riscv-gnu-toolchain@v2.0
 
       - name: Checkout repo
         uses: actions/checkout@v2
