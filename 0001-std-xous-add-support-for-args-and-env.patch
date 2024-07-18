@@ -1,4 +1,4 @@
-From 097d592a0ab86be0758b9c594ece4024289a956e Mon Sep 17 00:00:00 2001
+From 26b8acc930422184a67c00fbae787a4095992eb2 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Sun, 7 Jan 2024 22:49:22 +0800
 Subject: [PATCH 1/5] std: xous: add support for args and env
@@ -83,11 +83,11 @@ index 00000000000..a2db3ae52a0
 +    }
 +}
 diff --git a/library/std/src/sys/pal/xous/mod.rs b/library/std/src/sys/pal/xous/mod.rs
-index 68189bcc2e3..1e45aefba8d 100644
+index 961d45c5e83..d9d225eda44 100644
 --- a/library/std/src/sys/pal/xous/mod.rs
 +++ b/library/std/src/sys/pal/xous/mod.rs
 @@ -1,7 +1,6 @@
- #![deny(unsafe_op_in_unsafe_fn)]
+ #![forbid(unsafe_op_in_unsafe_fn)]
  
  pub mod alloc;
 -#[path = "../unsupported/args.rs"]
@@ -740,5 +740,5 @@ index 00000000000..262bfe5985c
 +    Ok((basis, dict))
 +}
 -- 
-2.45.0
+2.40.0.windows.1
 

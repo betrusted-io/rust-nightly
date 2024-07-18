@@ -1,4 +1,4 @@
-From 9a60d04740d2ee4c80c1bee7b49f084761ed3b11 Mon Sep 17 00:00:00 2001
+From 25e05fb64268699f2a60eb946f11196d6dc5269b Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Sun, 24 Dec 2023 15:15:01 +0800
 Subject: [PATCH 5/5] std: (not for upstreaming) customize tests for Xous
@@ -136,5 +136,5 @@ index 6ed84806e6d..af247b74cf0 100644
                      let new = Instant::now();
                      assert!(new >= old);
 -- 
-2.45.0
+2.40.0.windows.1
 
