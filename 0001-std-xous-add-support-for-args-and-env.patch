@@ -1,4 +1,4 @@
-From 26b8acc930422184a67c00fbae787a4095992eb2 Mon Sep 17 00:00:00 2001
+From aa9db2cbf9f302d3f79ac8811b99e8759e9c971f Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Sun, 7 Jan 2024 22:49:22 +0800
 Subject: [PATCH 1/5] std: xous: add support for args and env
@@ -11,14 +11,14 @@ This patch combines both as they are very similar in their decode.
 
 Signed-off-by: Sean Cross <sean@xobs.io>
 ---
- library/std/src/sys/pal/xous/args.rs          |  52 ++++
+ library/std/src/sys/pal/xous/args.rs          |  53 ++++
  library/std/src/sys/pal/xous/mod.rs           |   1 -
- library/std/src/sys/pal/xous/os.rs            | 137 +++++++--
- library/std/src/sys/pal/xous/os/params.rs     | 267 ++++++++++++++++++
- .../std/src/sys/pal/xous/os/params/test.rs    |  74 +++++
+ library/std/src/sys/pal/xous/os.rs            | 136 +++++++--
+ library/std/src/sys/pal/xous/os/params.rs     | 268 ++++++++++++++++++
+ .../std/src/sys/pal/xous/os/params/test.rs    |  75 +++++
  library/std/src/sys/path/mod.rs               |   3 +
  library/std/src/sys/path/xous.rs              |  72 +++++
- 7 files changed, 575 insertions(+), 31 deletions(-)
+ 7 files changed, 576 insertions(+), 32 deletions(-)
  create mode 100644 library/std/src/sys/pal/xous/args.rs
  create mode 100644 library/std/src/sys/pal/xous/os/params.rs
  create mode 100644 library/std/src/sys/pal/xous/os/params/test.rs
@@ -26,12 +26,13 @@ Signed-off-by: Sean Cross <sean@xobs.io>
 
 diff --git a/library/std/src/sys/pal/xous/args.rs b/library/std/src/sys/pal/xous/args.rs
 new file mode 100644
-index 00000000000..a2db3ae52a0
+index 00000000000..00c44ca220a
 --- /dev/null
 +++ b/library/std/src/sys/pal/xous/args.rs
-@@ -0,0 +1,52 @@
+@@ -0,0 +1,53 @@
 +use crate::ffi::OsString;
-+use crate::sys::pal::xous::os::{get_application_parameters, params::ArgumentList};
++use crate::sys::pal::xous::os::get_application_parameters;
++use crate::sys::pal::xous::os::params::ArgumentList;
 +use crate::{fmt, vec};
 +
 +pub struct Args {
@@ -95,24 +96,21 @@ index 961d45c5e83..d9d225eda44 100644
  #[path = "../unsupported/env.rs"]
  pub mod env;
 diff --git a/library/std/src/sys/pal/xous/os.rs b/library/std/src/sys/pal/xous/os.rs
-index 9be09eed629..398c1ba4584 100644
+index 8f8f35428c4..b0ab01a6383 100644
 --- a/library/std/src/sys/pal/xous/os.rs
 +++ b/library/std/src/sys/pal/xous/os.rs
-@@ -1,4 +1,5 @@
+@@ -1,29 +1,35 @@
  use super::unsupported;
 +use crate::collections::HashMap;
  use crate::error::Error as StdError;
  use crate::ffi::{OsStr, OsString};
- use crate::fmt;
-@@ -6,25 +7,33 @@
  use crate::marker::PhantomData;
  use crate::os::xous::ffi::Error as XousError;
  use crate::path::{self, PathBuf};
-+use crate::sync::{
-+    atomic::{AtomicPtr, AtomicUsize, Ordering},
-+    Mutex, Once,
-+};
-+use crate::vec;
+-use crate::{fmt, io};
++use crate::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};
++use crate::sync::{Mutex, Once};
++use crate::{fmt, io, vec};
 +
 +pub(crate) mod params;
 +
@@ -151,7 +149,7 @@ index 9be09eed629..398c1ba4584 100644
          }
      }
  }
-@@ -42,12 +51,21 @@ pub extern "C" fn abort() {
+@@ -41,12 +47,21 @@ pub extern "C" fn abort() {
      }
  
      #[no_mangle]
@@ -176,7 +174,7 @@ index 9be09eed629..398c1ba4584 100644
          exit(unsafe { main() });
      }
  
-@@ -117,44 +135,103 @@ pub fn current_exe() -> io::Result<PathBuf> {
+@@ -116,44 +131,103 @@ pub fn current_exe() -> io::Result<PathBuf> {
      unsupported()
  }
  
@@ -296,11 +294,10 @@ index 9be09eed629..398c1ba4584 100644
  pub fn temp_dir() -> PathBuf {
 diff --git a/library/std/src/sys/pal/xous/os/params.rs b/library/std/src/sys/pal/xous/os/params.rs
 new file mode 100644
-index 00000000000..506158ccbe4
+index 00000000000..3816e3416fd
 --- /dev/null
 +++ b/library/std/src/sys/pal/xous/os/params.rs
-@@ -0,0 +1,267 @@
-+use crate::ffi::OsString;
+@@ -0,0 +1,268 @@
 +/// Xous passes a pointer to the parameter block as the second argument.
 +/// This is used for passing flags such as environment variables. The
 +/// format of the argument block is:
@@ -371,6 +368,8 @@ index 00000000000..506158ccbe4
 +///
 +///      (u16 /* val_len */ [0u8; val_len as usize])
 +use core::slice;
++
++use crate::ffi::OsString;
 +
 +/// Magic number indicating we have an environment block
 +const ENV_MAGIC: [u8; 4] = *b"EnvB";
@@ -569,12 +568,13 @@ index 00000000000..506158ccbe4
 +}
 diff --git a/library/std/src/sys/pal/xous/os/params/test.rs b/library/std/src/sys/pal/xous/os/params/test.rs
 new file mode 100644
-index 00000000000..2586e722d53
+index 00000000000..0ef04ee3091
 --- /dev/null
 +++ b/library/std/src/sys/pal/xous/os/params/test.rs
-@@ -0,0 +1,74 @@
+@@ -0,0 +1,75 @@
 +use super::*;
-+use crate::{collections::HashMap, io::Write};
++use crate::collections::HashMap;
++use crate::io::Write;
 +
 +fn create_args_test() -> std::io::Result<Vec<u8>> {
 +    let mut sample_data = vec![];
@@ -740,5 +740,5 @@ index 00000000000..262bfe5985c
 +    Ok((basis, dict))
 +}
 -- 
-2.40.0.windows.1
+2.34.1
 

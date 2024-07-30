@@ -1,4 +1,4 @@
-From 6a2aac617a5cea2b298885e50167b152ccdcdf64 Mon Sep 17 00:00:00 2001
+From ba0c6dd7869bdf9648170e23a018746dc195cc05 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Tue, 11 Jun 2024 00:31:32 +0800
 Subject: [PATCH 2/5] net: fix dead code warning
@@ -10,11 +10,11 @@ Signed-off-by: Sean Cross <sean@xobs.io>
  2 files changed, 3 insertions(+)
 
 diff --git a/library/std/src/sys/pal/xous/net/dns.rs b/library/std/src/sys/pal/xous/net/dns.rs
-index 63056324bfb..387989df9e9 100644
+index 50efe978c4a..b091b459691 100644
 --- a/library/std/src/sys/pal/xous/net/dns.rs
 +++ b/library/std/src/sys/pal/xous/net/dns.rs
-@@ -5,6 +5,7 @@
- use core::convert::{TryFrom, TryInto};
+@@ -6,6 +6,7 @@
+ use crate::os::xous::services::{dns_server, DnsLendMut};
  
  pub struct DnsError {
 +    #[allow(dead_code)]
@@ -42,5 +42,5 @@ index dd8b765aa74..3e18ed24208 100644
          pub sin6_port: u16,
          pub sin6_addr: in6_addr,
 -- 
-2.40.0.windows.1
+2.34.1
 

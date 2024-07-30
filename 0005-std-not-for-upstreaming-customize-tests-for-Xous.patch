@@ -1,4 +1,4 @@
-From 25e05fb64268699f2a60eb946f11196d6dc5269b Mon Sep 17 00:00:00 2001
+From b7172ae019bed3ad141fcc645e91685ef38f7b60 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Sun, 24 Dec 2023 15:15:01 +0800
 Subject: [PATCH 5/5] std: (not for upstreaming) customize tests for Xous
@@ -13,10 +13,10 @@ Signed-off-by: Sean Cross <sean@xobs.io>
  5 files changed, 12 insertions(+), 11 deletions(-)
 
 diff --git a/library/std/src/collections/hash/map/tests.rs b/library/std/src/collections/hash/map/tests.rs
-index 8585376abc1..c77e7e8bb00 100644
+index 6641197c372..8425f4148f9 100644
 --- a/library/std/src/collections/hash/map/tests.rs
 +++ b/library/std/src/collections/hash/map/tests.rs
-@@ -269,11 +269,11 @@ fn test_lots_of_insertions() {
+@@ -270,11 +270,11 @@ fn test_lots_of_insertions() {
  
      // Try this a few times to make sure we never screw up the hashmap's
      // internal state.
@@ -31,10 +31,10 @@ index 8585376abc1..c77e7e8bb00 100644
          for i in 1..count {
              assert!(m.insert(i, i).is_none());
 diff --git a/library/std/src/io/tests.rs b/library/std/src/io/tests.rs
-index a2c1c430863..9a1976b91bb 100644
+index bb6a53bb290..256509bc50a 100644
 --- a/library/std/src/io/tests.rs
 +++ b/library/std/src/io/tests.rs
-@@ -359,6 +359,7 @@ fn chain_zero_length_read_is_not_eof() {
+@@ -360,6 +360,7 @@ fn chain_zero_length_read_is_not_eof() {
  
  #[bench]
  #[cfg_attr(target_os = "emscripten", ignore)]
@@ -43,10 +43,10 @@ index a2c1c430863..9a1976b91bb 100644
  fn bench_read_to_end(b: &mut test::Bencher) {
      b.iter(|| {
 diff --git a/library/std/src/sync/mpsc/sync_tests.rs b/library/std/src/sync/mpsc/sync_tests.rs
-index 945de280f40..7bb1946fc48 100644
+index 49b65c8efe6..650cb310587 100644
 --- a/library/std/src/sync/mpsc/sync_tests.rs
 +++ b/library/std/src/sync/mpsc/sync_tests.rs
-@@ -121,7 +121,7 @@ fn chan_gone_concurrent() {
+@@ -120,7 +120,7 @@ fn chan_gone_concurrent() {
  
  #[test]
  fn stress() {
@@ -55,7 +55,7 @@ index 945de280f40..7bb1946fc48 100644
      let (tx, rx) = sync_channel::<i32>(0);
      thread::spawn(move || {
          for _ in 0..count {
-@@ -135,7 +135,7 @@ fn stress() {
+@@ -134,7 +134,7 @@ fn stress() {
  
  #[test]
  fn stress_recv_timeout_two_threads() {
@@ -64,7 +64,7 @@ index 945de280f40..7bb1946fc48 100644
      let (tx, rx) = sync_channel::<i32>(0);
  
      thread::spawn(move || {
-@@ -161,7 +161,7 @@ fn stress_recv_timeout_two_threads() {
+@@ -160,7 +160,7 @@ fn stress_recv_timeout_two_threads() {
  
  #[test]
  fn stress_recv_timeout_shared() {
@@ -73,7 +73,7 @@ index 945de280f40..7bb1946fc48 100644
      const NTHREADS: u32 = 8;
      let (tx, rx) = sync_channel::<i32>(0);
      let (dtx, drx) = sync_channel::<()>(0);
-@@ -201,7 +201,7 @@ fn stress_recv_timeout_shared() {
+@@ -200,7 +200,7 @@ fn stress_recv_timeout_shared() {
  
  #[test]
  fn stress_shared() {
@@ -82,7 +82,7 @@ index 945de280f40..7bb1946fc48 100644
      const NTHREADS: u32 = 8;
      let (tx, rx) = sync_channel::<i32>(0);
      let (dtx, drx) = sync_channel::<()>(0);
-@@ -448,7 +448,7 @@ fn recv(rx: Receiver<Box<i32>>, i: i32) {
+@@ -447,7 +447,7 @@ fn recv(rx: Receiver<Box<i32>>, i: i32) {
  
  #[test]
  fn recv_a_lot() {
@@ -91,7 +91,7 @@ index 945de280f40..7bb1946fc48 100644
      // Regression test that we don't run out of stack in scheduler context
      let (tx, rx) = sync_channel(count);
      for _ in 0..count {
-@@ -462,7 +462,7 @@ fn recv_a_lot() {
+@@ -461,7 +461,7 @@ fn recv_a_lot() {
  #[test]
  fn shared_chan_stress() {
      let (tx, rx) = sync_channel(0);
@@ -101,10 +101,10 @@ index 945de280f40..7bb1946fc48 100644
          let tx = tx.clone();
          thread::spawn(move || {
 diff --git a/library/std/src/sync/mpsc/tests.rs b/library/std/src/sync/mpsc/tests.rs
-index ac1a804cf9c..7cf33b857c4 100644
+index 13892fa0d18..40cb5cb060d 100644
 --- a/library/std/src/sync/mpsc/tests.rs
 +++ b/library/std/src/sync/mpsc/tests.rs
-@@ -466,7 +466,7 @@ fn recv_timeout_upgrade() {
+@@ -465,7 +465,7 @@ fn recv_timeout_upgrade() {
  #[test]
  fn stress_recv_timeout_shared() {
      let (tx, rx) = channel();
@@ -113,7 +113,7 @@ index ac1a804cf9c..7cf33b857c4 100644
  
      for i in 0..stress {
          let tx = tx.clone();
-@@ -538,7 +538,7 @@ fn shared_recv_timeout() {
+@@ -537,7 +537,7 @@ fn shared_recv_timeout() {
  #[test]
  fn shared_chan_stress() {
      let (tx, rx) = channel();
@@ -123,10 +123,10 @@ index ac1a804cf9c..7cf33b857c4 100644
          let tx = tx.clone();
          thread::spawn(move || {
 diff --git a/library/std/src/time/tests.rs b/library/std/src/time/tests.rs
-index 6ed84806e6d..af247b74cf0 100644
+index de36dc4c9fd..5f673770292 100644
 --- a/library/std/src/time/tests.rs
 +++ b/library/std/src/time/tests.rs
-@@ -32,7 +32,7 @@ fn instant_monotonic_concurrent() -> crate::thread::Result<()> {
+@@ -34,7 +34,7 @@ fn instant_monotonic_concurrent() -> crate::thread::Result<()> {
          .map(|_| {
              crate::thread::spawn(|| {
                  let mut old = Instant::now();
@@ -136,5 +136,5 @@ index 6ed84806e6d..af247b74cf0 100644
                      let new = Instant::now();
                      assert!(new >= old);
 -- 
-2.40.0.windows.1
+2.34.1
 

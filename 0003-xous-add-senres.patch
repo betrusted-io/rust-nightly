@@ -1,4 +1,4 @@
-From 801ed45bc20b8b13d7023798582bcc728f090c20 Mon Sep 17 00:00:00 2001
+From b8384ede06618edd2c36dd84a8effcd18c800c96 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Tue, 7 Nov 2023 09:53:20 +0800
 Subject: [PATCH 3/5] xous: add senres
@@ -658,5 +658,5 @@ index 00000000000..1f84478aa97
 +    }
 +}
 -- 
-2.40.0.windows.1
+2.34.1
 
