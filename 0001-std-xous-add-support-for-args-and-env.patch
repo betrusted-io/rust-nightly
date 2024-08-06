@@ -1,7 +1,7 @@
-From aa9db2cbf9f302d3f79ac8811b99e8759e9c971f Mon Sep 17 00:00:00 2001
-From: Sean Cross <sean@xobs.io>
-Date: Sun, 7 Jan 2024 22:49:22 +0800
-Subject: [PATCH 1/5] std: xous: add support for args and env
+From bc7b5c714b3f1551363b0d40581b8d7e172f62aa Mon Sep 17 00:00:00 2001
+From: Sean Cross <sean@osdyne.com>
+Date: Tue, 6 Aug 2024 22:41:06 +0800
+Subject: [PATCH 1/6] std: xous: add support for args and env
 
 Process arguments and environment variables are both passed by way of
 Application Parameters. These are a TLV format that gets passed in as
@@ -9,30 +9,26 @@ the second process argument.
 
 This patch combines both as they are very similar in their decode.
 
-Signed-off-by: Sean Cross <sean@xobs.io>
+Signed-off-by: Sean Cross <sean@osdyne.com>
 ---
- library/std/src/sys/pal/xous/args.rs          |  53 ++++
+ library/std/src/sys/pal/xous/args.rs          |  52 ++++
  library/std/src/sys/pal/xous/mod.rs           |   1 -
- library/std/src/sys/pal/xous/os.rs            | 136 +++++++--
- library/std/src/sys/pal/xous/os/params.rs     | 268 ++++++++++++++++++
- .../std/src/sys/pal/xous/os/params/test.rs    |  75 +++++
- library/std/src/sys/path/mod.rs               |   3 +
- library/std/src/sys/path/xous.rs              |  72 +++++
- 7 files changed, 576 insertions(+), 32 deletions(-)
+ library/std/src/sys/pal/xous/os.rs            | 138 +++++++--
+ library/std/src/sys/pal/xous/os/params.rs     | 267 ++++++++++++++++++
+ .../std/src/sys/pal/xous/os/params/test.rs    |  74 +++++
+ 5 files changed, 500 insertions(+), 32 deletions(-)
  create mode 100644 library/std/src/sys/pal/xous/args.rs
  create mode 100644 library/std/src/sys/pal/xous/os/params.rs
  create mode 100644 library/std/src/sys/pal/xous/os/params/test.rs
- create mode 100644 library/std/src/sys/path/xous.rs
 
 diff --git a/library/std/src/sys/pal/xous/args.rs b/library/std/src/sys/pal/xous/args.rs
 new file mode 100644
-index 00000000000..00c44ca220a
+index 00000000000..a2db3ae52a0
 --- /dev/null
 +++ b/library/std/src/sys/pal/xous/args.rs
-@@ -0,0 +1,53 @@
+@@ -0,0 +1,52 @@
 +use crate::ffi::OsString;
-+use crate::sys::pal::xous::os::get_application_parameters;
-+use crate::sys::pal::xous::os::params::ArgumentList;
++use crate::sys::pal::xous::os::{get_application_parameters, params::ArgumentList};
 +use crate::{fmt, vec};
 +
 +pub struct Args {
@@ -96,10 +92,10 @@ index 961d45c5e83..d9d225eda44 100644
  #[path = "../unsupported/env.rs"]
  pub mod env;
 diff --git a/library/std/src/sys/pal/xous/os.rs b/library/std/src/sys/pal/xous/os.rs
-index 8f8f35428c4..b0ab01a6383 100644
+index 8f8f35428c4..bc83faba211 100644
 --- a/library/std/src/sys/pal/xous/os.rs
 +++ b/library/std/src/sys/pal/xous/os.rs
-@@ -1,29 +1,35 @@
+@@ -1,29 +1,37 @@
  use super::unsupported;
 +use crate::collections::HashMap;
  use crate::error::Error as StdError;
@@ -108,8 +104,10 @@ index 8f8f35428c4..b0ab01a6383 100644
  use crate::os::xous::ffi::Error as XousError;
  use crate::path::{self, PathBuf};
 -use crate::{fmt, io};
-+use crate::sync::atomic::{AtomicPtr, AtomicUsize, Ordering};
-+use crate::sync::{Mutex, Once};
++use crate::sync::{
++    atomic::{AtomicPtr, AtomicUsize, Ordering},
++    Mutex, Once,
++};
 +use crate::{fmt, io, vec};
 +
 +pub(crate) mod params;
@@ -149,7 +147,7 @@ index 8f8f35428c4..b0ab01a6383 100644
          }
      }
  }
-@@ -41,12 +47,21 @@ pub extern "C" fn abort() {
+@@ -41,12 +49,21 @@ pub extern "C" fn abort() {
      }
  
      #[no_mangle]
@@ -174,7 +172,7 @@ index 8f8f35428c4..b0ab01a6383 100644
          exit(unsafe { main() });
      }
  
-@@ -116,44 +131,103 @@ pub fn current_exe() -> io::Result<PathBuf> {
+@@ -116,44 +133,103 @@ pub fn current_exe() -> io::Result<PathBuf> {
      unsupported()
  }
  
@@ -294,10 +292,11 @@ index 8f8f35428c4..b0ab01a6383 100644
  pub fn temp_dir() -> PathBuf {
 diff --git a/library/std/src/sys/pal/xous/os/params.rs b/library/std/src/sys/pal/xous/os/params.rs
 new file mode 100644
-index 00000000000..3816e3416fd
+index 00000000000..506158ccbe4
 --- /dev/null
 +++ b/library/std/src/sys/pal/xous/os/params.rs
-@@ -0,0 +1,268 @@
+@@ -0,0 +1,267 @@
++use crate::ffi::OsString;
 +/// Xous passes a pointer to the parameter block as the second argument.
 +/// This is used for passing flags such as environment variables. The
 +/// format of the argument block is:
@@ -368,8 +367,6 @@ index 00000000000..3816e3416fd
 +///
 +///      (u16 /* val_len */ [0u8; val_len as usize])
 +use core::slice;
-+
-+use crate::ffi::OsString;
 +
 +/// Magic number indicating we have an environment block
 +const ENV_MAGIC: [u8; 4] = *b"EnvB";
@@ -568,13 +565,12 @@ index 00000000000..3816e3416fd
 +}
 diff --git a/library/std/src/sys/pal/xous/os/params/test.rs b/library/std/src/sys/pal/xous/os/params/test.rs
 new file mode 100644
-index 00000000000..0ef04ee3091
+index 00000000000..2586e722d53
 --- /dev/null
 +++ b/library/std/src/sys/pal/xous/os/params/test.rs
-@@ -0,0 +1,75 @@
+@@ -0,0 +1,74 @@
 +use super::*;
-+use crate::collections::HashMap;
-+use crate::io::Write;
++use crate::{collections::HashMap, io::Write};
 +
 +fn create_args_test() -> std::io::Result<Vec<u8>> {
 +    let mut sample_data = vec![];
@@ -647,98 +643,6 @@ index 00000000000..0ef04ee3091
 +        }
 +    }
 +}
-diff --git a/library/std/src/sys/path/mod.rs b/library/std/src/sys/path/mod.rs
-index 24a94ec7828..c501416f718 100644
---- a/library/std/src/sys/path/mod.rs
-+++ b/library/std/src/sys/path/mod.rs
-@@ -11,6 +11,9 @@
-     ))] {
-         mod unsupported_backslash;
-         pub use unsupported_backslash::*;
-+    } else if #[cfg(target_os = "xous")] {
-+        mod xous;
-+        pub use xous::*;
-     } else {
-         mod unix;
-         pub use unix::*;
-diff --git a/library/std/src/sys/path/xous.rs b/library/std/src/sys/path/xous.rs
-new file mode 100644
-index 00000000000..262bfe5985c
---- /dev/null
-+++ b/library/std/src/sys/path/xous.rs
-@@ -0,0 +1,72 @@
-+use crate::ffi::OsStr;
-+use crate::io;
-+use crate::path::{Path, PathBuf, Prefix};
-+
-+#[inline]
-+pub fn is_sep_byte(b: u8) -> bool {
-+    b == b':'
-+}
-+
-+#[inline]
-+pub fn is_verbatim_sep(b: u8) -> bool {
-+    b == b':'
-+}
-+
-+#[inline]
-+pub fn parse_prefix(_: &OsStr) -> Option<Prefix<'_>> {
-+    None
-+}
-+
-+pub const MAIN_SEP_STR: &str = ":";
-+pub const MAIN_SEP: char = ':';
-+
-+/// Make a POSIX path absolute without changing its semantics.
-+pub(crate) fn absolute(path: &Path) -> io::Result<PathBuf> {
-+    Ok(path.to_owned())
-+}
-+
-+/// Split a path into its constituant Basis and Dict, if the path is legal.
-+pub(crate) fn split_basis_and_dict<'a, F: Fn() -> Option<&'a str>>(
-+    src: &'a str,
-+    default: F,
-+) -> Result<(Option<&'a str>, Option<&'a str>), ()> {
-+    let mut basis = None;
-+    let dict;
-+    if let Some(src) = src.strip_prefix(crate::path::MAIN_SEPARATOR) {
-+        if let Some((maybe_basis, maybe_dict)) = src.split_once(crate::path::MAIN_SEPARATOR) {
-+            if !maybe_basis.is_empty() {
-+                basis = Some(maybe_basis);
-+            } else {
-+                basis = default();
-+            }
-+
-+            if maybe_dict.is_empty() {
-+                dict = None;
-+            } else {
-+                dict = Some(maybe_dict);
-+            }
-+        } else {
-+            if !src.is_empty() {
-+                basis = Some(src);
-+            }
-+            dict = None;
-+        }
-+    } else {
-+        if src.is_empty() {
-+            return Ok((basis, Some("")));
-+        }
-+        dict = Some(src);
-+    }
-+
-+    if let Some(basis) = &basis {
-+        if basis.ends_with(crate::path::MAIN_SEPARATOR) {
-+            return Err(());
-+        }
-+    }
-+    if let Some(dict) = &dict {
-+        if dict.ends_with(crate::path::MAIN_SEPARATOR) {
-+            return Err(());
-+        }
-+    }
-+    Ok((basis, dict))
-+}
 -- 
-2.34.1
+2.45.0
 
