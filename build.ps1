@@ -82,7 +82,7 @@ if ($LastExitCode -ne 0) {
 
 git submodule update --init --recursive
 
-$src_path = ".\target\riscv32imac-unknown-xous-elf\release\deps"
+$src_path = ".\library\target\riscv32imac-unknown-xous-elf\release\deps"
 $dest_path = "$rust_sysroot\lib\rustlib\riscv32imac-unknown-xous-elf"
 $dest_lib_path = "$dest_path\lib"
 function Get-ItemBaseName {
