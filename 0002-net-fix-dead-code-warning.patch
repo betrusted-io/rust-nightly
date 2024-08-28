@@ -1,7 +1,7 @@
-From 629205c4166ca13a7efe1f09d07da6baa996bca4 Mon Sep 17 00:00:00 2001
+From cfd8bc513abdbdbb224da576cf346fc9a4b0b77d Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Tue, 11 Jun 2024 00:31:32 +0800
-Subject: [PATCH 2/6] net: fix dead code warning
+Subject: [PATCH 2/7] net: fix dead code warning
 
 Signed-off-by: Sean Cross <sean@xobs.io>
 ---
@@ -178,5 +178,5 @@ index dd8b765aa74..3e18ed24208 100644
          pub sin6_port: u16,
          pub sin6_addr: in6_addr,
 -- 
-2.45.0
+2.40.0.windows.1
 

@@ -1,0 +1,28 @@
+From 2052e57c2dc342f5dfc18413c7f42e76a877612d Mon Sep 17 00:00:00 2001
+From: Sean Cross <sean@xobs.io>
+Date: Wed, 28 Aug 2024 20:42:27 +0800
+Subject: [PATCH 3/7] xous: ffi: correct syscall number for adjust_process
+
+The AdjustProcessLimit syscall was using the correct call number.
+
+Signed-off-by: Sean Cross <sean@xobs.io>
+---
+ library/std/src/os/xous/ffi.rs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/library/std/src/os/xous/ffi.rs b/library/std/src/os/xous/ffi.rs
+index 1a4a940bf35..a898be2df8f 100644
+--- a/library/std/src/os/xous/ffi.rs
++++ b/library/std/src/os/xous/ffi.rs
+@@ -615,7 +615,7 @@ pub(crate) fn thread_id() -> Result<ThreadId, Error> {
+ /// An error is generated if the `knob` is not a valid limit, or if the call
+ /// would not succeed.
+ pub(crate) fn adjust_limit(knob: Limits, current: usize, new: usize) -> Result<usize, Error> {
+-    let mut a0 = Syscall::JoinThread as usize;
++    let mut a0 = Syscall::AdustProcessLimit as usize;
+     let mut a1 = knob as usize;
+     let a2 = current;
+     let a3 = new;
+-- 
+2.40.0.windows.1
+

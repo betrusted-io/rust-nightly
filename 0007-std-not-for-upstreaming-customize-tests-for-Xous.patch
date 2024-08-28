@@ -1,7 +1,7 @@
-From c787eeb750fddfe5973f9cca7d1d5633d7ccb934 Mon Sep 17 00:00:00 2001
+From 23a7a6d143a080079a5655cda99c1f3d8f8c586a Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Sun, 24 Dec 2023 15:15:01 +0800
-Subject: [PATCH 6/6] std: (not for upstreaming) customize tests for Xous
+Subject: [PATCH 7/7] std: (not for upstreaming) customize tests for Xous
 
 Signed-off-by: Sean Cross <sean@xobs.io>
 ---
@@ -136,5 +136,5 @@ index de36dc4c9fd..5f673770292 100644
                      let new = Instant::now();
                      assert!(new >= old);
 -- 
-2.45.0
+2.40.0.windows.1
 

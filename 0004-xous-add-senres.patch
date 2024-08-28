@@ -1,7 +1,7 @@
-From 6ba1a8266511ac197c49613a5d9f61d6c6ebe37f Mon Sep 17 00:00:00 2001
+From 5f3b695192398e9193543cea12c1bd5a0d9a4ef3 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@osdyne.com>
 Date: Tue, 6 Aug 2024 22:45:11 +0800
-Subject: [PATCH 3/6] xous: add senres
+Subject: [PATCH 4/7] xous: add senres
 
 Senres is a method for sending and receiving structs. It is a cut-down
 version of rkyv and similar modules.
@@ -658,5 +658,5 @@ index 00000000000..1f84478aa97
 +    }
 +}
 -- 
-2.45.0
+2.40.0.windows.1
 

@@ -1,7 +1,7 @@
-From ec9b5ac3e7b6e3bb011b42e0e817faec9a65e3cb Mon Sep 17 00:00:00 2001
+From 9fff0ef98d411a48013dbba776ce182eb3aa90d9 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Tue, 7 Nov 2023 10:41:10 +0800
-Subject: [PATCH 5/6] xous: fs: add initial filesystem support
+Subject: [PATCH 6/7] xous: fs: add initial filesystem support
 
 Signed-off-by: Sean Cross <sean@xobs.io>
 ---
@@ -875,5 +875,5 @@ index 45a738fb876..bc93e541509 100644
  #[path = "../unsupported/io.rs"]
  pub mod io;
 -- 
-2.45.0
+2.40.0.windows.1
 

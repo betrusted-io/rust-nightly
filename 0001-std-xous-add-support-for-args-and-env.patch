@@ -1,7 +1,7 @@
-From bc7b5c714b3f1551363b0d40581b8d7e172f62aa Mon Sep 17 00:00:00 2001
+From 5340ecca7e9850d444969ab38f4056f78e99a7e6 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@osdyne.com>
 Date: Tue, 6 Aug 2024 22:41:06 +0800
-Subject: [PATCH 1/6] std: xous: add support for args and env
+Subject: [PATCH 1/7] std: xous: add support for args and env
 
 Process arguments and environment variables are both passed by way of
 Application Parameters. These are a TLV format that gets passed in as
@@ -644,5 +644,5 @@ index 00000000000..2586e722d53
 +    }
 +}
 -- 
-2.45.0
+2.40.0.windows.1
 
