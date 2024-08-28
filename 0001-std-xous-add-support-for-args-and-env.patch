@@ -1,4 +1,4 @@
-From 5340ecca7e9850d444969ab38f4056f78e99a7e6 Mon Sep 17 00:00:00 2001
+From 914b3e4d31e9833ede95f2b9d90b91f18c9a5030 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@osdyne.com>
 Date: Tue, 6 Aug 2024 22:41:06 +0800
 Subject: [PATCH 1/7] std: xous: add support for args and env
@@ -80,13 +80,12 @@ index 00000000000..a2db3ae52a0
 +    }
 +}
 diff --git a/library/std/src/sys/pal/xous/mod.rs b/library/std/src/sys/pal/xous/mod.rs
-index 961d45c5e83..d9d225eda44 100644
+index b211e94db65..a64cd068560 100644
 --- a/library/std/src/sys/pal/xous/mod.rs
 +++ b/library/std/src/sys/pal/xous/mod.rs
-@@ -1,7 +1,6 @@
+@@ -1,6 +1,5 @@
  #![forbid(unsafe_op_in_unsafe_fn)]
  
- pub mod alloc;
 -#[path = "../unsupported/args.rs"]
  pub mod args;
  #[path = "../unsupported/env.rs"]

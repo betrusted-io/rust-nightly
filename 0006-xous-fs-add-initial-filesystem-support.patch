@@ -1,4 +1,4 @@
-From 9fff0ef98d411a48013dbba776ce182eb3aa90d9 Mon Sep 17 00:00:00 2001
+From 4e8858d1b3f6df0ab15ae7839826dfefdded81c1 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Tue, 7 Nov 2023 10:41:10 +0800
 Subject: [PATCH 6/7] xous: fs: add initial filesystem support
@@ -863,10 +863,10 @@ index 00000000000..fb2182e2091
 +    io::copy(&mut reader, &mut writer)
 +}
 diff --git a/library/std/src/sys/pal/xous/mod.rs b/library/std/src/sys/pal/xous/mod.rs
-index 45a738fb876..bc93e541509 100644
+index b4f122fc4be..c9ac75bb06a 100644
 --- a/library/std/src/sys/pal/xous/mod.rs
 +++ b/library/std/src/sys/pal/xous/mod.rs
-@@ -4,7 +4,6 @@
+@@ -3,7 +3,6 @@
  pub mod args;
  #[path = "../unsupported/env.rs"]
  pub mod env;

@@ -1,4 +1,4 @@
-From 2052e57c2dc342f5dfc18413c7f42e76a877612d Mon Sep 17 00:00:00 2001
+From b6f657f66134e5fc63efb585a684d262cbb77ef1 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Wed, 28 Aug 2024 20:42:27 +0800
 Subject: [PATCH 3/7] xous: ffi: correct syscall number for adjust_process
