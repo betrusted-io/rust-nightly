@@ -1,4 +1,4 @@
-From b6f657f66134e5fc63efb585a684d262cbb77ef1 Mon Sep 17 00:00:00 2001
+From 4796c7921d58abf8c7d1d62c453d9cfe85927c1e Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Wed, 28 Aug 2024 20:42:27 +0800
 Subject: [PATCH 3/7] xous: ffi: correct syscall number for adjust_process
@@ -11,7 +11,7 @@ Signed-off-by: Sean Cross <sean@xobs.io>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/library/std/src/os/xous/ffi.rs b/library/std/src/os/xous/ffi.rs
-index 1a4a940bf35..a898be2df8f 100644
+index 1a4a940bf35..1db314e9dda 100644
 --- a/library/std/src/os/xous/ffi.rs
 +++ b/library/std/src/os/xous/ffi.rs
 @@ -615,7 +615,7 @@ pub(crate) fn thread_id() -> Result<ThreadId, Error> {
@@ -19,7 +19,7 @@ index 1a4a940bf35..a898be2df8f 100644
  /// would not succeed.
  pub(crate) fn adjust_limit(knob: Limits, current: usize, new: usize) -> Result<usize, Error> {
 -    let mut a0 = Syscall::JoinThread as usize;
-+    let mut a0 = Syscall::AdustProcessLimit as usize;
++    let mut a0 = Syscall::AdjustProcessLimit as usize;
      let mut a1 = knob as usize;
      let a2 = current;
      let a3 = new;

@@ -59,8 +59,8 @@ else {
     throw "No C compiler found for riscv"
 }
 
-$rustc_version = $(rustc --version).Split(" ")[1]
-$rustc_hash = $(rustc --version).Split("(")[1].Split(" ")[0]
+$rustc_version = $(rustc +nightly --version).Split(" ")[1]
+$rustc_hash = $(rustc +nightly --version).Split("(")[1].Split(" ")[0]
 Write-Output "Building Rust $rustc_version, hash $rustc_hash"
 Set-Location .\rust
 Write-Output "git checkout $rustc_hash"
@@ -119,7 +119,7 @@ if (Test-Path $src_path) {
     }
 }
 
-cargo build `
+cargo +nightly build `
     --target riscv32imac-unknown-xous-elf `
     -Zbinary-dep-depinfo `
     --release `
