@@ -1,4 +1,4 @@
-From 5577ffee292cb62bc3edaff25ab3247d45ed24a7 Mon Sep 17 00:00:00 2001
+From 84f18e0d2d3ad15230c2f58be3f1dcad357f3c9f Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Sun, 24 Dec 2023 15:15:01 +0800
 Subject: [PATCH 7/7] std: (not for upstreaming) customize tests for Xous
@@ -13,7 +13,7 @@ Signed-off-by: Sean Cross <sean@xobs.io>
  5 files changed, 12 insertions(+), 11 deletions(-)
 
 diff --git a/library/std/src/collections/hash/map/tests.rs b/library/std/src/collections/hash/map/tests.rs
-index 6641197c372..8425f4148f9 100644
+index fa8ea95b891..3cadfe2688a 100644
 --- a/library/std/src/collections/hash/map/tests.rs
 +++ b/library/std/src/collections/hash/map/tests.rs
 @@ -270,11 +270,11 @@ fn test_lots_of_insertions() {
@@ -25,13 +25,13 @@ index 6641197c372..8425f4148f9 100644
      for _ in 0..loops {
          assert!(m.is_empty());
  
--        let count = if cfg!(miri) { 101 } else { 1001 };
-+        let count = if cfg!(miri) || cfg!(target_os = "xous") { 101 } else { 1001 };
+-        let count = if cfg!(miri) { 66 } else { 1001 };
++        let count = if cfg!(miri) || cfg!(target_os = "xous") { 66 } else { 1001 };
  
          for i in 1..count {
              assert!(m.insert(i, i).is_none());
 diff --git a/library/std/src/io/tests.rs b/library/std/src/io/tests.rs
-index bb6a53bb290..256509bc50a 100644
+index 56b71c47dc7..6cf742c9a46 100644
 --- a/library/std/src/io/tests.rs
 +++ b/library/std/src/io/tests.rs
 @@ -360,6 +360,7 @@ fn chain_zero_length_read_is_not_eof() {
@@ -123,7 +123,7 @@ index 13892fa0d18..40cb5cb060d 100644
          let tx = tx.clone();
          thread::spawn(move || {
 diff --git a/library/std/src/time/tests.rs b/library/std/src/time/tests.rs
-index de36dc4c9fd..5f673770292 100644
+index e88f2d5e806..ae9b48e4b7e 100644
 --- a/library/std/src/time/tests.rs
 +++ b/library/std/src/time/tests.rs
 @@ -34,7 +34,7 @@ fn instant_monotonic_concurrent() -> crate::thread::Result<()> {
@@ -136,5 +136,5 @@ index de36dc4c9fd..5f673770292 100644
                      let new = Instant::now();
                      assert!(new >= old);
 -- 
-2.40.0.windows.1
+2.34.1
 
