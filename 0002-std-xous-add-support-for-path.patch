@@ -1,7 +1,7 @@
-From ac11afdc21d51ef28165d9e2904fefc8979ac690 Mon Sep 17 00:00:00 2001
+From afdf09fa701fbc7202ba96f4a80927cb04b42a3c Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@osdyne.com>
 Date: Tue, 6 Aug 2024 22:45:31 +0800
-Subject: [PATCH 5/7] std: xous: add support for path
+Subject: [PATCH 2/4] std: xous: add support for path
 
 Add support for the Xous-specific path implementation.
 
@@ -105,5 +105,5 @@ index 00000000000..262bfe5985c
 +    Ok((basis, dict))
 +}
 -- 
-2.40.0.windows.1
+2.34.1
 

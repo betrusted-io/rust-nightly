@@ -1,7 +1,7 @@
-From 4e8858d1b3f6df0ab15ae7839826dfefdded81c1 Mon Sep 17 00:00:00 2001
+From 7880a8b8e029709dda0e2f2c10584d4266dd99fb Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Tue, 7 Nov 2023 10:41:10 +0800
-Subject: [PATCH 6/7] xous: fs: add initial filesystem support
+Subject: [PATCH 3/4] xous: fs: add initial filesystem support
 
 Signed-off-by: Sean Cross <sean@xobs.io>
 ---
@@ -120,7 +120,7 @@ index 00000000000..c601ff8f1a2
 +    }
 +}
 diff --git a/library/std/src/os/xous/services.rs b/library/std/src/os/xous/services.rs
-index ddf0236f5ad..812cd4beb89 100644
+index 93916750c05..bfdc1377fd6 100644
 --- a/library/std/src/os/xous/services.rs
 +++ b/library/std/src/os/xous/services.rs
 @@ -11,6 +11,9 @@
@@ -875,5 +875,5 @@ index b4f122fc4be..c9ac75bb06a 100644
  #[path = "../unsupported/io.rs"]
  pub mod io;
 -- 
-2.40.0.windows.1
+2.34.1
 

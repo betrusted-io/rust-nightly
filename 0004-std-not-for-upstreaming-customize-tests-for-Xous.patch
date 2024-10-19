@@ -1,7 +1,7 @@
-From 84f18e0d2d3ad15230c2f58be3f1dcad357f3c9f Mon Sep 17 00:00:00 2001
+From bfa87652afdee573d7635bf966e69b6e9ed32b08 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Sun, 24 Dec 2023 15:15:01 +0800
-Subject: [PATCH 7/7] std: (not for upstreaming) customize tests for Xous
+Subject: [PATCH 4/4] std: (not for upstreaming) customize tests for Xous
 
 Signed-off-by: Sean Cross <sean@xobs.io>
 ---
