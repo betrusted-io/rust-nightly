@@ -1,0 +1,44 @@
+From d96ec8307917d12db361c8c920dca52d8fcca5bf Mon Sep 17 00:00:00 2001
+From: Sean Cross <sean@xobs.io>
+Date: Tue, 29 Oct 2024 22:39:48 +0800
+Subject: [PATCH 5/5] xous: sync: remove `rustc_const_stable` attribute
+
+These functions had `#[rustc_const_stable(feature = "const_locks", since
+= "1.63.0")]` on them because they were originally taken from
+`no_threads`. with d066dfd these no longer compile. Since other
+platforms do not have this attribute, remove it. This fixes the build
+for Xous.
+
+Signed-off-by: Sean Cross <sean@xobs.io>
+---
+ library/std/src/sys/sync/condvar/xous.rs | 1 -
+ library/std/src/sys/sync/mutex/xous.rs   | 1 -
+ 2 files changed, 2 deletions(-)
+
+diff --git a/library/std/src/sys/sync/condvar/xous.rs b/library/std/src/sys/sync/condvar/xous.rs
+index cb55a3e3369..b9e5f47abfc 100644
+--- a/library/std/src/sys/sync/condvar/xous.rs
++++ b/library/std/src/sys/sync/condvar/xous.rs
+@@ -20,7 +20,6 @@ unsafe impl Sync for Condvar {}
+ 
+ impl Condvar {
+     #[inline]
+-    #[rustc_const_stable(feature = "const_locks", since = "1.63.0")]
+     pub const fn new() -> Condvar {
+         Condvar { counter: AtomicUsize::new(0), timed_out: AtomicUsize::new(0) }
+     }
+diff --git a/library/std/src/sys/sync/mutex/xous.rs b/library/std/src/sys/sync/mutex/xous.rs
+index 233e638f913..c6b954c1711 100644
+--- a/library/std/src/sys/sync/mutex/xous.rs
++++ b/library/std/src/sys/sync/mutex/xous.rs
+@@ -24,7 +24,6 @@ pub struct Mutex {
+ 
+ impl Mutex {
+     #[inline]
+-    #[rustc_const_stable(feature = "const_locks", since = "1.63.0")]
+     pub const fn new() -> Mutex {
+         Mutex { locked: AtomicUsize::new(0), contended: AtomicBool::new(false) }
+     }
+-- 
+2.34.1
+

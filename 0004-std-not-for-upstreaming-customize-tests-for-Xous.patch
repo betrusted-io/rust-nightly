@@ -1,7 +1,7 @@
-From bfa87652afdee573d7635bf966e69b6e9ed32b08 Mon Sep 17 00:00:00 2001
+From 6b8975e7371f9c209dad6956b179ca99d874a509 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Sun, 24 Dec 2023 15:15:01 +0800
-Subject: [PATCH 4/4] std: (not for upstreaming) customize tests for Xous
+Subject: [PATCH 4/5] std: (not for upstreaming) customize tests for Xous
 
 Signed-off-by: Sean Cross <sean@xobs.io>
 ---
@@ -13,7 +13,7 @@ Signed-off-by: Sean Cross <sean@xobs.io>
  5 files changed, 12 insertions(+), 11 deletions(-)
 
 diff --git a/library/std/src/collections/hash/map/tests.rs b/library/std/src/collections/hash/map/tests.rs
-index fa8ea95b891..3cadfe2688a 100644
+index b79ad1c3119..7568db8f59e 100644
 --- a/library/std/src/collections/hash/map/tests.rs
 +++ b/library/std/src/collections/hash/map/tests.rs
 @@ -270,11 +270,11 @@ fn test_lots_of_insertions() {

@@ -1,7 +1,7 @@
-From 7880a8b8e029709dda0e2f2c10584d4266dd99fb Mon Sep 17 00:00:00 2001
+From a30bd1caabe9d801c0fd57d89eadbce48d8aa010 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Tue, 7 Nov 2023 10:41:10 +0800
-Subject: [PATCH 3/4] xous: fs: add initial filesystem support
+Subject: [PATCH 3/5] xous: fs: add initial filesystem support
 
 Signed-off-by: Sean Cross <sean@xobs.io>
 ---

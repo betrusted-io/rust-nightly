@@ -1,7 +1,7 @@
-From 2a901d63f36d5c28715672f51c44a4b6f3f2e6fe Mon Sep 17 00:00:00 2001
+From ac5f967c1dedf665805d9eef22bd0d0161c7e5e3 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@osdyne.com>
 Date: Tue, 6 Aug 2024 22:45:11 +0800
-Subject: [PATCH 1/4] xous: add senres
+Subject: [PATCH 1/5] xous: add senres
 
 Senres is a method for sending and receiving structs. It is a cut-down
 version of rkyv and similar modules.
@@ -25,7 +25,7 @@ index a64cd068560..b4f122fc4be 100644
 +mod senres;
 diff --git a/library/std/src/sys/pal/xous/senres.rs b/library/std/src/sys/pal/xous/senres.rs
 new file mode 100644
-index 00000000000..1f84478aa97
+index 00000000000..3511ad53288
 --- /dev/null
 +++ b/library/std/src/sys/pal/xous/senres.rs
 @@ -0,0 +1,628 @@
@@ -360,7 +360,7 @@ index 00000000000..1f84478aa97
 +        T::try_get_from(self)
 +    }
 +
-+    pub fn try_get_ref_from<T: RecDesRef<'a, Backing> + ?Sized>(&'a self) -> Result<&T, ()> {
++    pub fn try_get_ref_from<T: RecDesRef<'a, Backing> + ?Sized>(&'a self) -> Result<&'a T, ()> {
 +        T::try_get_ref_from(self)
 +    }
 +
