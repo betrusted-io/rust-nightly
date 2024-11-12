@@ -1,7 +1,7 @@
-From a30bd1caabe9d801c0fd57d89eadbce48d8aa010 Mon Sep 17 00:00:00 2001
+From d1db9dbb558fa1cdef82459da443d751dcf2af8b Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Tue, 7 Nov 2023 10:41:10 +0800
-Subject: [PATCH 3/5] xous: fs: add initial filesystem support
+Subject: [PATCH 3/4] xous: fs: add initial filesystem support
 
 Signed-off-by: Sean Cross <sean@xobs.io>
 ---
@@ -9,10 +9,10 @@ Signed-off-by: Sean Cross <sean@xobs.io>
  library/std/src/os/xous/mod.rs           |   3 +
  library/std/src/os/xous/path.rs          |  42 ++
  library/std/src/os/xous/services.rs      |   3 +
- library/std/src/os/xous/services/pddb.rs |  88 ++++
- library/std/src/sys/pal/xous/fs.rs       | 629 +++++++++++++++++++++++
+ library/std/src/os/xous/services/pddb.rs |  88 +++
+ library/std/src/sys/pal/xous/fs.rs       | 646 +++++++++++++++++++++++
  library/std/src/sys/pal/xous/mod.rs      |   1 -
- 7 files changed, 798 insertions(+), 1 deletion(-)
+ 7 files changed, 815 insertions(+), 1 deletion(-)
  create mode 100644 library/std/src/os/xous/fs.rs
  create mode 100644 library/std/src/os/xous/path.rs
  create mode 100644 library/std/src/os/xous/services/pddb.rs
@@ -229,10 +229,10 @@ index 00000000000..f8459b5bac9
 +}
 diff --git a/library/std/src/sys/pal/xous/fs.rs b/library/std/src/sys/pal/xous/fs.rs
 new file mode 100644
-index 00000000000..fb2182e2091
+index 00000000000..d2543909a92
 --- /dev/null
 +++ b/library/std/src/sys/pal/xous/fs.rs
-@@ -0,0 +1,629 @@
+@@ -0,0 +1,646 @@
 +use alloc::str::FromStr;
 +
 +use crate::ffi::OsString;
@@ -489,17 +489,34 @@ index 00000000000..fb2182e2091
 +    }
 +
 +    pub fn fsync(&self) -> io::Result<()> {
-+        // println!("rust: File::fsync()");
 +        unsupported()
 +    }
 +
 +    pub fn datasync(&self) -> io::Result<()> {
-+        // println!("rust: File::datasync()");
++        unsupported()
++    }
++
++    pub fn lock(&self) -> io::Result<()> {
++        unsupported()
++    }
++
++    pub fn lock_shared(&self) -> io::Result<()> {
++        unsupported()
++    }
++
++    pub fn try_lock(&self) -> io::Result<bool> {
++        unsupported()
++    }
++
++    pub fn try_lock_shared(&self) -> io::Result<bool> {
++        unsupported()
++    }
++
++    pub fn unlock(&self) -> io::Result<()> {
 +        unsupported()
 +    }
 +
 +    pub fn truncate(&self, _size: u64) -> io::Result<()> {
-+        // println!("rust: File::truncate()");
 +        unsupported()
 +    }
 +
