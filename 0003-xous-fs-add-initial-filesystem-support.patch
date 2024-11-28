@@ -1,4 +1,4 @@
-From d1db9dbb558fa1cdef82459da443d751dcf2af8b Mon Sep 17 00:00:00 2001
+From 1b7a0cb22820285f828db14c203b131a354b6cf9 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Tue, 7 Nov 2023 10:41:10 +0800
 Subject: [PATCH 3/4] xous: fs: add initial filesystem support
@@ -229,7 +229,7 @@ index 00000000000..f8459b5bac9
 +}
 diff --git a/library/std/src/sys/pal/xous/fs.rs b/library/std/src/sys/pal/xous/fs.rs
 new file mode 100644
-index 00000000000..d2543909a92
+index 00000000000..4dd4d9596b1
 --- /dev/null
 +++ b/library/std/src/sys/pal/xous/fs.rs
 @@ -0,0 +1,646 @@
@@ -808,7 +808,7 @@ index 00000000000..d2543909a92
 +
 +pub fn readlink(p: &Path) -> io::Result<PathBuf> {
 +    stat(p)?;
-+    Err(io::const_io_error!(io::ErrorKind::InvalidInput, "not a symbolic link"))
++    Err(io::const_error!(io::ErrorKind::InvalidInput, "not a symbolic link"))
 +}
 +
 +pub fn symlink(_original: &Path, _link: &Path) -> io::Result<()> {
