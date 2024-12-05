@@ -34,7 +34,7 @@ $env:CARGO_PROFILE_RELEASE_DEBUG = 0
 $env:CARGO_PROFILE_RELEASE_OPT_LEVEL = ""
 $env:CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS = "true"
 $env:RUSTC_BOOTSTRAP = 1
-$env:RUSTFLAGS = "-Cforce-unwind-tables=yes -Cembed-bitcode=yes"
+$env:RUSTFLAGS = "-Cforce-unwind-tables=yes -Cembed-bitcode=yes -Zforce-unstable-if-unmarked=yes"
 $env:__CARGO_DEFAULT_LIB_METADATA = "stablestd"
 
 # Set up the C compiler. We need to explicitly specify these variables

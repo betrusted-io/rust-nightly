@@ -105,7 +105,7 @@ jobs:
           CARGO_PROFILE_RELEASE_OPT_LEVEL: 3
           CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS: false
           RUSTC_BOOTSTRAP: 1
-          RUSTFLAGS: -Cforce-unwind-tables=yes -Cembed-bitcode=yes
+          RUSTFLAGS: -Cforce-unwind-tables=yes -Cembed-bitcode=yes -Zforce-unstable-if-unmarked=yes
           __CARGO_DEFAULT_LIB_METADATA: stablestd
           CC: riscv-none-elf-gcc
           AR: riscv-none-elf-ar

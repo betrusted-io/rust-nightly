@@ -36,7 +36,7 @@ export CARGO_PROFILE_RELEASE_DEBUG=0
 export CARGO_PROFILE_RELEASE_OPT_LEVEL="3"
 export CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS="true"
 export RUSTC_BOOTSTRAP=1
-export RUSTFLAGS="-Cforce-unwind-tables=yes -Cembed-bitcode=yes"
+export RUSTFLAGS="-Cforce-unwind-tables=yes -Cembed-bitcode=yes -Zforce-unstable-if-unmarked=yes"
 export __CARGO_DEFAULT_LIB_METADATA="stablestd"
 
 command_exists() {
