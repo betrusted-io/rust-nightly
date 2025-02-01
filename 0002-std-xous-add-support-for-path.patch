@@ -1,4 +1,4 @@
-From e32a8e960c786a1070255f99e765ba53e994d559 Mon Sep 17 00:00:00 2001
+From db6490c1795a550addc99c72e352e1280385eaec Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@osdyne.com>
 Date: Tue, 6 Aug 2024 22:45:31 +0800
 Subject: [PATCH 2/4] std: xous: add support for path
@@ -13,19 +13,19 @@ Signed-off-by: Sean Cross <sean@osdyne.com>
  create mode 100644 library/std/src/sys/path/xous.rs
 
 diff --git a/library/std/src/sys/path/mod.rs b/library/std/src/sys/path/mod.rs
-index 24a94ec7828..c501416f718 100644
+index 1fa4e80d678..9a08e6fc2c5 100644
 --- a/library/std/src/sys/path/mod.rs
 +++ b/library/std/src/sys/path/mod.rs
-@@ -11,6 +11,9 @@
-     ))] {
+@@ -8,6 +8,9 @@
+     } else if #[cfg(target_os = "solid_asp3")] {
          mod unsupported_backslash;
          pub use unsupported_backslash::*;
 +    } else if #[cfg(target_os = "xous")] {
 +        mod xous;
 +        pub use xous::*;
-     } else {
-         mod unix;
-         pub use unix::*;
+     } else if #[cfg(target_os = "uefi")] {
+         mod uefi;
+         pub use uefi::*;
 diff --git a/library/std/src/sys/path/xous.rs b/library/std/src/sys/path/xous.rs
 new file mode 100644
 index 00000000000..c1f6359b117
@@ -109,5 +109,5 @@ index 00000000000..c1f6359b117
 +    Ok((basis, dict))
 +}
 -- 
-2.34.1
+2.47.0
 
