@@ -1,4 +1,4 @@
-From 1b7a0cb22820285f828db14c203b131a354b6cf9 Mon Sep 17 00:00:00 2001
+From a52462563ace5b7a1b0035494a57fa3e7ef372f8 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Tue, 7 Nov 2023 10:41:10 +0800
 Subject: [PATCH 3/4] xous: fs: add initial filesystem support
@@ -12,7 +12,7 @@ Signed-off-by: Sean Cross <sean@xobs.io>
  library/std/src/os/xous/services/pddb.rs |  88 +++
  library/std/src/sys/pal/xous/fs.rs       | 646 +++++++++++++++++++++++
  library/std/src/sys/pal/xous/mod.rs      |   1 -
- 7 files changed, 815 insertions(+), 1 deletion(-)
+ 8 files changed, 836 insertions(+), 1 deletion(-)
  create mode 100644 library/std/src/os/xous/fs.rs
  create mode 100644 library/std/src/os/xous/path.rs
  create mode 100644 library/std/src/os/xous/services/pddb.rs
@@ -880,7 +880,7 @@ index 00000000000..4dd4d9596b1
 +    io::copy(&mut reader, &mut writer)
 +}
 diff --git a/library/std/src/sys/pal/xous/mod.rs b/library/std/src/sys/pal/xous/mod.rs
-index b4f122fc4be..c9ac75bb06a 100644
+index 0a5ad8945cb..26f8cf49f37 100644
 --- a/library/std/src/sys/pal/xous/mod.rs
 +++ b/library/std/src/sys/pal/xous/mod.rs
 @@ -3,7 +3,6 @@
@@ -889,8 +889,8 @@ index b4f122fc4be..c9ac75bb06a 100644
  pub mod env;
 -#[path = "../unsupported/fs.rs"]
  pub mod fs;
- #[path = "../unsupported/io.rs"]
- pub mod io;
+ pub mod os;
+ #[path = "../unsupported/pipe.rs"]
 -- 
 2.34.1
 
