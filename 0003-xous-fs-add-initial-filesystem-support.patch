@@ -1,4 +1,4 @@
-From a52462563ace5b7a1b0035494a57fa3e7ef372f8 Mon Sep 17 00:00:00 2001
+From c33c8a6e5d2a65371503e41e2a8a2c0a07991fed Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Tue, 7 Nov 2023 10:41:10 +0800
 Subject: [PATCH 3/4] xous: fs: add initial filesystem support
@@ -10,9 +10,9 @@ Signed-off-by: Sean Cross <sean@xobs.io>
  library/std/src/os/xous/path.rs          |  42 ++
  library/std/src/os/xous/services.rs      |   3 +
  library/std/src/os/xous/services/pddb.rs |  88 +++
- library/std/src/sys/pal/xous/fs.rs       | 646 +++++++++++++++++++++++
+ library/std/src/sys/pal/xous/fs.rs       | 650 +++++++++++++++++++++++
  library/std/src/sys/pal/xous/mod.rs      |   1 -
- 8 files changed, 836 insertions(+), 1 deletion(-)
+ 7 files changed, 819 insertions(+), 1 deletion(-)
  create mode 100644 library/std/src/os/xous/fs.rs
  create mode 100644 library/std/src/os/xous/path.rs
  create mode 100644 library/std/src/os/xous/services/pddb.rs
@@ -229,10 +229,10 @@ index 00000000000..f8459b5bac9
 +}
 diff --git a/library/std/src/sys/pal/xous/fs.rs b/library/std/src/sys/pal/xous/fs.rs
 new file mode 100644
-index 00000000000..4dd4d9596b1
+index 00000000000..be5068136ae
 --- /dev/null
 +++ b/library/std/src/sys/pal/xous/fs.rs
-@@ -0,0 +1,646 @@
+@@ -0,0 +1,650 @@
 +use alloc::str::FromStr;
 +
 +use crate::ffi::OsString;
@@ -625,6 +625,10 @@ index 00000000000..4dd4d9596b1
 +                })?;
 +
 +        Ok((result[0] as u64) | ((result[1] as u64) << 32))
++    }
++
++    pub fn tell(&self) -> io::Result<u64> {
++        self.seek(SeekFrom::Current(0))
 +    }
 +
 +    pub fn duplicate(&self) -> io::Result<File> {
