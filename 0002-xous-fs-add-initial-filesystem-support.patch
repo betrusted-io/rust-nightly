@@ -1,4 +1,4 @@
-From a331c0bb590feda4ead80411f22b865d821feaa8 Mon Sep 17 00:00:00 2001
+From 37d3ffcf441085be658a211e8e4b2a9fec042b66 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@osdyne.com>
 Date: Tue, 6 Aug 2024 22:45:11 +0800
 Subject: [PATCH 2/3] xous: fs: add initial filesystem support
@@ -233,19 +233,19 @@ index 00000000000..f8459b5bac9
 +    cid
 +}
 diff --git a/library/std/src/sys/fs/mod.rs b/library/std/src/sys/fs/mod.rs
-index c2e19eb393a..b3c3290fe37 100644
+index 3b176d0d16c..46dbdb4f730 100644
 --- a/library/std/src/sys/fs/mod.rs
 +++ b/library/std/src/sys/fs/mod.rs
-@@ -21,6 +21,9 @@
+@@ -32,6 +32,9 @@
      } else if #[cfg(target_os = "wasi")] {
          mod wasi;
-         pub use wasi::*;
+         use wasi as imp;
 +    } else if #[cfg(target_os = "xous")] {
 +        mod xous;
-+        pub use xous::*;
++        use xous as imp;
      } else {
          mod unsupported;
-         pub use unsupported::*;
+         use unsupported as imp;
 diff --git a/library/std/src/sys/fs/xous.rs b/library/std/src/sys/fs/xous.rs
 new file mode 100644
 index 00000000000..b5c08e04a6e
