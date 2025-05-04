@@ -1,4 +1,4 @@
-From 37d3ffcf441085be658a211e8e4b2a9fec042b66 Mon Sep 17 00:00:00 2001
+From 74733beb86ac0df1640105cecbc0277bb1c4bed1 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@osdyne.com>
 Date: Tue, 6 Aug 2024 22:45:11 +0800
 Subject: [PATCH 2/3] xous: fs: add initial filesystem support
@@ -14,9 +14,9 @@ Signed-off-by: Sean Cross <sean@xobs.io>
  library/std/src/os/xous/services.rs      |   3 +
  library/std/src/os/xous/services/pddb.rs |  88 +++
  library/std/src/sys/fs/mod.rs            |   3 +
- library/std/src/sys/fs/xous.rs           | 651 +++++++++++++++++++++++
+ library/std/src/sys/fs/xous.rs           | 652 +++++++++++++++++++++++
  library/std/src/sys/fs/xous/senres.rs    | 628 ++++++++++++++++++++++
- 8 files changed, 1451 insertions(+)
+ 8 files changed, 1452 insertions(+)
  create mode 100644 library/std/src/os/xous/fs.rs
  create mode 100644 library/std/src/os/xous/path.rs
  create mode 100644 library/std/src/os/xous/services/pddb.rs
@@ -125,7 +125,7 @@ index 00000000000..c601ff8f1a2
 +    }
 +}
 diff --git a/library/std/src/os/xous/services.rs b/library/std/src/os/xous/services.rs
-index 93916750c05..bfdc1377fd6 100644
+index 0681485ea06..ce8c502558f 100644
 --- a/library/std/src/os/xous/services.rs
 +++ b/library/std/src/os/xous/services.rs
 @@ -11,6 +11,9 @@
@@ -233,10 +233,10 @@ index 00000000000..f8459b5bac9
 +    cid
 +}
 diff --git a/library/std/src/sys/fs/mod.rs b/library/std/src/sys/fs/mod.rs
-index 3b176d0d16c..46dbdb4f730 100644
+index d55e28074fe..6ca3059d2af 100644
 --- a/library/std/src/sys/fs/mod.rs
 +++ b/library/std/src/sys/fs/mod.rs
-@@ -32,6 +32,9 @@
+@@ -33,6 +33,9 @@
      } else if #[cfg(target_os = "wasi")] {
          mod wasi;
          use wasi as imp;
@@ -248,10 +248,10 @@ index 3b176d0d16c..46dbdb4f730 100644
          use unsupported as imp;
 diff --git a/library/std/src/sys/fs/xous.rs b/library/std/src/sys/fs/xous.rs
 new file mode 100644
-index 00000000000..b5c08e04a6e
+index 00000000000..12bddecf314
 --- /dev/null
 +++ b/library/std/src/sys/fs/xous.rs
-@@ -0,0 +1,651 @@
+@@ -0,0 +1,652 @@
 +mod senres;
 +
 +use alloc::str::FromStr;
@@ -259,12 +259,13 @@ index 00000000000..b5c08e04a6e
 +use crate::ffi::OsString;
 +use crate::fmt;
 +use crate::hash::Hash;
++use crate::fs::TryLockError;
 +use crate::io::{self, BorrowedCursor, IoSlice, IoSliceMut, SeekFrom};
 +use crate::os::xous::ffi::{OsStrExt, blocking_scalar, lend_mut};
 +use crate::os::xous::services::{PddbBlockingScalar, PddbLend, PddbLendMut, pddb_server};
 +use crate::path::{Path, PathBuf};
 +use crate::sys::time::SystemTime;
-+use crate::sys::unsupported;
++use crate::sys::{unsupported, unsupported_err};
 +use senres::{Senres, SenresMut, Stack};
 +
 +pub use crate::sys::fs::common::exists;
@@ -524,12 +525,12 @@ index 00000000000..b5c08e04a6e
 +        unsupported()
 +    }
 +
-+    pub fn try_lock(&self) -> io::Result<bool> {
-+        unsupported()
++    pub fn try_lock(&self) -> Result<(), TryLockError> {
++        Err(TryLockError::Error(unsupported_err()))
 +    }
 +
-+    pub fn try_lock_shared(&self) -> io::Result<bool> {
-+        unsupported()
++    pub fn try_lock_shared(&self) -> Result<(), TryLockError> {
++        Err(TryLockError::Error(unsupported_err()))
 +    }
 +
 +    pub fn unlock(&self) -> io::Result<()> {
