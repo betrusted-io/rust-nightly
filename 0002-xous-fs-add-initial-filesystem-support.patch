@@ -1,4 +1,4 @@
-From 74733beb86ac0df1640105cecbc0277bb1c4bed1 Mon Sep 17 00:00:00 2001
+From 722fe2c207194b90aafc6ee71ec75280c22247d3 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@osdyne.com>
 Date: Tue, 6 Aug 2024 22:45:11 +0800
 Subject: [PATCH 2/3] xous: fs: add initial filesystem support
@@ -14,9 +14,9 @@ Signed-off-by: Sean Cross <sean@xobs.io>
  library/std/src/os/xous/services.rs      |   3 +
  library/std/src/os/xous/services/pddb.rs |  88 +++
  library/std/src/sys/fs/mod.rs            |   3 +
- library/std/src/sys/fs/xous.rs           | 652 +++++++++++++++++++++++
- library/std/src/sys/fs/xous/senres.rs    | 628 ++++++++++++++++++++++
- 8 files changed, 1452 insertions(+)
+ library/std/src/sys/fs/xous.rs           | 659 +++++++++++++++++++++++
+ library/std/src/sys/fs/xous/senres.rs    | 628 +++++++++++++++++++++
+ 8 files changed, 1459 insertions(+)
  create mode 100644 library/std/src/os/xous/fs.rs
  create mode 100644 library/std/src/os/xous/path.rs
  create mode 100644 library/std/src/os/xous/services/pddb.rs
@@ -248,10 +248,10 @@ index d55e28074fe..6ca3059d2af 100644
          use unsupported as imp;
 diff --git a/library/std/src/sys/fs/xous.rs b/library/std/src/sys/fs/xous.rs
 new file mode 100644
-index 00000000000..12bddecf314
+index 00000000000..2874702986e
 --- /dev/null
 +++ b/library/std/src/sys/fs/xous.rs
-@@ -0,0 +1,652 @@
+@@ -0,0 +1,659 @@
 +mod senres;
 +
 +use alloc::str::FromStr;
@@ -648,6 +648,13 @@ index 00000000000..12bddecf314
 +        Ok((result[0] as u64) | ((result[1] as u64) << 32))
 +    }
 +
++    pub fn size(&self) -> Option<io::Result<u64>> {
++        match self.file_attr().map(|attr| attr.len) {
++            Ok(0) => None,
++            result => Some(result),
++        }
++    }
++
 +    pub fn tell(&self) -> io::Result<u64> {
 +        self.seek(SeekFrom::Current(0))
 +    }
@@ -906,7 +913,7 @@ index 00000000000..12bddecf314
 +}
 diff --git a/library/std/src/sys/fs/xous/senres.rs b/library/std/src/sys/fs/xous/senres.rs
 new file mode 100644
-index 00000000000..3511ad53288
+index 00000000000..5ce453fa046
 --- /dev/null
 +++ b/library/std/src/sys/fs/xous/senres.rs
 @@ -0,0 +1,628 @@
@@ -1056,7 +1063,7 @@ index 00000000000..3511ad53288
 +        true
 +    }
 +
-+    fn reader(&self, fourcc: [u8; 4]) -> Option<Reader<Self>>
++    fn reader(&self, fourcc: [u8; 4]) -> Option<Reader<'_, Self>>
 +    where
 +        Self: core::marker::Sized,
 +    {
@@ -1112,7 +1119,7 @@ index 00000000000..3511ad53288
 +pub trait SenresMut: Senres {
 +    fn as_mut_slice(&mut self) -> &mut [u8];
 +    fn as_mut_ptr(&mut self) -> *mut u8;
-+    fn writer(&mut self, fourcc: [u8; 4]) -> Option<Writer<Self>>
++    fn writer(&mut self, fourcc: [u8; 4]) -> Option<Writer<'_, Self>>
 +    where
 +        Self: core::marker::Sized,
 +    {
