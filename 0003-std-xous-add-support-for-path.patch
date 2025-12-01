@@ -1,7 +1,7 @@
-From 853e541bad415431291c677e1135d7e13b0dcccc Mon Sep 17 00:00:00 2001
+From f4a5bc0159e1fe0be551cb712344409f55349992 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@osdyne.com>
 Date: Tue, 6 Aug 2024 22:45:31 +0800
-Subject: [PATCH 2/4] std: xous: add support for path
+Subject: [PATCH 3/5] std: xous: add support for path
 
 Add support for the Xous-specific path implementation.
 
@@ -29,7 +29,7 @@ index 4b21695c4ac..7c616dee085 100644
  /// Includes all extension traits, and some important type definitions.
 diff --git a/library/std/src/os/xous/path.rs b/library/std/src/os/xous/path.rs
 new file mode 100644
-index 00000000000..1856164da80
+index 00000000000..5a8212e6cd4
 --- /dev/null
 +++ b/library/std/src/os/xous/path.rs
 @@ -0,0 +1,40 @@
@@ -63,7 +63,7 @@ index 00000000000..1856164da80
 +impl PathExt for path::Path {
 +    fn is_basis(&self) -> bool {
 +        let Some(as_str) = self.as_os_str().to_str() else {
-+             return false;
++            return false;
 +        };
 +
 +        let Ok(path) = crate::sys::path::split_basis_dict_key(as_str) else {
@@ -90,7 +90,7 @@ index 254683bc83f..eb95a918a0c 100644
          mod windows_prefix;
 diff --git a/library/std/src/sys/path/xous.rs b/library/std/src/sys/path/xous.rs
 new file mode 100644
-index 00000000000..982416a726c
+index 00000000000..f297576179c
 --- /dev/null
 +++ b/library/std/src/sys/path/xous.rs
 @@ -0,0 +1,248 @@
@@ -144,7 +144,7 @@ index 00000000000..982416a726c
 +    pub key: Option<&'a str>,
 +}
 +
-+/// Split a path into its constituant Basis, Dict, and Key, if the path is legal.
++/// Split a path into its constituent Basis, Dict, and Key, if the path is legal.
 +/// A Basis of `None` indicates the default Basis.
 +pub fn split_basis_dict_key<'a>(src: &'a str) -> Result<SplitPath<'a>, BasisSplitError> {
 +    let mut current_string = src;
@@ -343,5 +343,5 @@ index 00000000000..982416a726c
 +    );
 +}
 -- 
-2.50.0
+2.51.1
 

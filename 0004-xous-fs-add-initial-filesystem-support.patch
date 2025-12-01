@@ -1,7 +1,7 @@
-From ed785e21bca4d4e82b6d9b528f83935338a5bacd Mon Sep 17 00:00:00 2001
+From 83ae5cb62228ac0066726520ec21beaf0d803632 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@osdyne.com>
 Date: Tue, 6 Aug 2024 22:45:11 +0800
-Subject: [PATCH 3/4] xous: fs: add initial filesystem support
+Subject: [PATCH 4/5] xous: fs: add initial filesystem support
 
 This also adds senres, which is a method for sending and receiving structs.
 It is a cut-down version of rkyv and similar modules.
@@ -1189,7 +1189,7 @@ index 00000000000..f8459b5bac9
 +    cid
 +}
 diff --git a/library/std/src/sys/fs/mod.rs b/library/std/src/sys/fs/mod.rs
-index 74354227d84..7a138a412f5 100644
+index eaea2887124..86bd84ac171 100644
 --- a/library/std/src/sys/fs/mod.rs
 +++ b/library/std/src/sys/fs/mod.rs
 @@ -47,6 +47,10 @@
@@ -2506,5 +2506,5 @@ index 00000000000..5ce453fa046
 +    }
 +}
 -- 
-2.51.0
+2.51.1
 

@@ -1,0 +1,29 @@
+From 19264d567d6d243f80137c1483b28400b6300bca Mon Sep 17 00:00:00 2001
+From: Sean Cross <sean@xobs.io>
+Date: Mon, 1 Dec 2025 21:59:50 +0800
+Subject: [PATCH 2/5] xous: fix calling of rust_main_thread_not_inlined
+
+This function was incorrectly called run_main_thread_not_inlined when
+invoked.
+
+Signed-off-by: Sean Cross <sean@xobs.io>
+---
+ library/std/src/sys/thread/xous.rs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/library/std/src/sys/thread/xous.rs b/library/std/src/sys/thread/xous.rs
+index 6c2cdfa4acd..208d43bb2c0 100644
+--- a/library/std/src/sys/thread/xous.rs
++++ b/library/std/src/sys/thread/xous.rs
+@@ -87,7 +87,7 @@ extern "C" fn thread_start(
+             // dealloc calls from being reordered to after the TLS has been destroyed.
+             // See https://github.com/rust-lang/rust/pull/144465#pullrequestreview-3289729950
+             // for more context.
+-            run_main_thread_not_inlined(init);
++            rust_main_thread_not_inlined(init);
+ 
+             // Destroy TLS, which will free the TLS page and call the destructor for
+             // any thread local storage (if any).
+-- 
+2.51.1
+

@@ -1,7 +1,7 @@
-From 4f202b6ef3aca709e821d3ac9286b6a3e89b1049 Mon Sep 17 00:00:00 2001
+From 2034aa49d4e18c68bb18dc46c64573e88104d706 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Tue, 28 Oct 2025 13:21:37 +0800
-Subject: [PATCH 1/4] xous: fix unwinding and unused symbol errors
+Subject: [PATCH 1/5] xous: fix unwinding and unused symbol errors
 
 The unwinding feature is called `panic-unwind` and not `panic_unwind`.
 Adjust the feature gate to look for these values.
@@ -57,5 +57,5 @@ index d9b8418e6c3..2da711f89df 100644
              unsafe { super::eh_unwinding::EH_FRAME_ADDRESS = eh_frame };
              unwind::set_custom_eh_frame_finder(&super::eh_unwinding::EH_FRAME_SETTINGS).ok();
 -- 
-2.51.0
+2.51.1
 
