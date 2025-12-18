@@ -1,4 +1,4 @@
-From 1dded3591ddbd29739e4d6d0302b7c7a5fda76fd Mon Sep 17 00:00:00 2001
+From b58351e2ad94e1a635bad44b0c5485d217ea1a46 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Tue, 28 Oct 2025 13:21:37 +0800
 Subject: [PATCH 1/5] xous: fix unwinding and unused symbol errors
@@ -15,18 +15,17 @@ Signed-off-by: Sean Cross <sean@xobs.io>
  2 files changed, 2 insertions(+), 8 deletions(-)
 
 diff --git a/library/std/src/sys/pal/xous/mod.rs b/library/std/src/sys/pal/xous/mod.rs
-index e673157e0eb..1208516652d 100644
+index 077cff1ee0f..19575220b22 100644
 --- a/library/std/src/sys/pal/xous/mod.rs
 +++ b/library/std/src/sys/pal/xous/mod.rs
-@@ -1,7 +1,5 @@
+@@ -1,14 +1,8 @@
  #![forbid(unsafe_op_in_unsafe_fn)]
  
 -use crate::os::xous::ffi::exit;
 -
  pub mod os;
- #[path = "../unsupported/pipe.rs"]
- pub mod pipe;
-@@ -10,7 +8,3 @@
+ pub mod time;
+ 
  #[path = "../unsupported/common.rs"]
  mod common;
  pub use common::*;

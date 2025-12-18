@@ -1,4 +1,4 @@
-From 3e30da98da1560af6b6e9b2c36975e3b0ffcf9a4 Mon Sep 17 00:00:00 2001
+From 203e3089a3f3ab3ded871aed4fa6bffc78451710 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@osdyne.com>
 Date: Tue, 6 Aug 2024 22:45:11 +0800
 Subject: [PATCH 4/5] xous: fs: add initial filesystem support
@@ -23,14 +23,14 @@ Signed-off-by: Sean Cross <sean@xobs.io>
 
 diff --git a/library/std/src/os/xous/fs.rs b/library/std/src/os/xous/fs.rs
 new file mode 100644
-index 00000000000..cd19095bd0c
+index 00000000000..3a399d0b65b
 --- /dev/null
 +++ b/library/std/src/os/xous/fs.rs
 @@ -0,0 +1,33 @@
 +#![stable(feature = "rust1", since = "1.0.0")]
 +
 +use crate::fs;
-+use crate::sys_common::AsInner;
++use crate::sys::AsInner;
 +
 +#[stable(feature = "file_type_ext", since = "1.5.0")]
 +pub trait FileTypeExt {
