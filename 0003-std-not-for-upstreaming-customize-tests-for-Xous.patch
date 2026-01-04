@@ -1,7 +1,7 @@
-From 591518687c6cc3fd5f03c9e51de85ac183b6fd7b Mon Sep 17 00:00:00 2001
+From 564c158caea3dc1e78a3a85b048917539d41ff12 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Tue, 11 Mar 2025 23:08:29 +0800
-Subject: [PATCH 5/5] std: (not for upstreaming) customize tests for Xous
+Subject: [PATCH 3/3] std: (not for upstreaming) customize tests for Xous
 
 Signed-off-by: Sean Cross <sean@xobs.io>
 ---
@@ -31,10 +31,10 @@ index 9f7df20a1d7..c69e4e179ce 100644
          for i in 1..count {
              assert!(m.insert(i, i).is_none());
 diff --git a/library/std/src/io/tests.rs b/library/std/src/io/tests.rs
-index e14e6432eaf..b30d160427f 100644
+index b22988d4a8a..b7b79dd1e37 100644
 --- a/library/std/src/io/tests.rs
 +++ b/library/std/src/io/tests.rs
-@@ -349,6 +349,7 @@ fn chain_zero_length_read_is_not_eof() {
+@@ -358,6 +358,7 @@ fn chain_zero_length_read_is_not_eof() {
  }
  
  #[bench]
@@ -123,10 +123,10 @@ index a7f326d201b..fd64e60a22b 100644
          let tx = tx.clone();
          thread::spawn(move || {
 diff --git a/library/std/tests/time.rs b/library/std/tests/time.rs
-index be1948af915..c10e37704d2 100644
+index 0ef89bb09c6..0fcd9196f8e 100644
 --- a/library/std/tests/time.rs
 +++ b/library/std/tests/time.rs
-@@ -32,7 +32,7 @@ fn instant_monotonic_concurrent() -> std::thread::Result<()> {
+@@ -33,7 +33,7 @@ fn instant_monotonic_concurrent() -> std::thread::Result<()> {
          .map(|_| {
              std::thread::spawn(|| {
                  let mut old = Instant::now();
