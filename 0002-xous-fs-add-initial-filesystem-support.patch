@@ -1,4 +1,4 @@
-From 88c5d48021d3bcd20353911229245c1fce6eb2b9 Mon Sep 17 00:00:00 2001
+From 966fee77b585abe0c4aae92e0817bdf333d3e637 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@osdyne.com>
 Date: Tue, 6 Aug 2024 22:45:11 +0800
 Subject: [PATCH 2/3] xous: fs: add initial filesystem support
@@ -183,7 +183,7 @@ index 00000000000..f8459b5bac9
 +    cid
 +}
 diff --git a/library/std/src/sys/fs/mod.rs b/library/std/src/sys/fs/mod.rs
-index fa046cb8e7d..bac6f8a1357 100644
+index 0c297c5766b..2a469ba8100 100644
 --- a/library/std/src/sys/fs/mod.rs
 +++ b/library/std/src/sys/fs/mod.rs
 @@ -45,6 +45,10 @@
@@ -199,7 +199,7 @@ index fa046cb8e7d..bac6f8a1357 100644
          use unsupported as imp;
 diff --git a/library/std/src/sys/fs/xous.rs b/library/std/src/sys/fs/xous.rs
 new file mode 100644
-index 00000000000..7f3c8c32ec0
+index 00000000000..bfb6b75ffee
 --- /dev/null
 +++ b/library/std/src/sys/fs/xous.rs
 @@ -0,0 +1,662 @@
@@ -219,7 +219,7 @@ index 00000000000..7f3c8c32ec0
 +use crate::sys::{unsupported, unsupported_err};
 +use senres::{Senres, SenresMut, Stack};
 +
-+pub use crate::sys::fs::common::exists;
++pub use crate::sys::fs::common::{Dir, exists};
 +
 +pub struct File {
 +    fd: u16,
