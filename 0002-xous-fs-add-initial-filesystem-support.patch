@@ -1,4 +1,4 @@
-From 966fee77b585abe0c4aae92e0817bdf333d3e637 Mon Sep 17 00:00:00 2001
+From 89d1f567d158a4ebf0682855320f4d594d74e9e8 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@osdyne.com>
 Date: Tue, 6 Aug 2024 22:45:11 +0800
 Subject: [PATCH 2/3] xous: fs: add initial filesystem support
@@ -15,7 +15,8 @@ Signed-off-by: Sean Cross <sean@xobs.io>
  library/std/src/sys/fs/mod.rs            |   4 +
  library/std/src/sys/fs/xous.rs           | 662 +++++++++++++++++++++++
  library/std/src/sys/fs/xous/senres.rs    | 628 +++++++++++++++++++++
- 7 files changed, 1420 insertions(+)
+ library/std/src/sys/path/xous.rs         |   7 +-
+ 8 files changed, 1421 insertions(+), 6 deletions(-)
  create mode 100644 library/std/src/os/xous/fs.rs
  create mode 100644 library/std/src/os/xous/services/pddb.rs
  create mode 100644 library/std/src/sys/fs/xous.rs
@@ -1499,6 +1500,31 @@ index 00000000000..5ce453fa046
 +        println!("[String; 3] val: {:?}", val);
 +    }
 +}
+diff --git a/library/std/src/sys/path/xous.rs b/library/std/src/sys/path/xous.rs
+index f297576179c..633c8766380 100644
+--- a/library/std/src/sys/path/xous.rs
++++ b/library/std/src/sys/path/xous.rs
+@@ -2,10 +2,7 @@
+ use crate::io;
+ use crate::path::{Path, PathBuf, Prefix};
+ 
+-#[inline]
+-pub fn is_sep_byte(b: u8) -> bool {
+-    b == b'/' || b == b':'
+-}
++path_separator_bytes!(b'/', b':');
+ 
+ #[inline]
+ pub fn is_verbatim_sep(b: u8) -> bool {
+@@ -18,8 +15,6 @@ pub fn parse_prefix(_: &OsStr) -> Option<Prefix<'_>> {
+ }
+ 
+ pub const HAS_PREFIXES: bool = false;
+-pub const MAIN_SEP_STR: &str = "/";
+-pub const MAIN_SEP: char = '/';
+ pub const ALLOWED_SEP: &[char] = &['/', ':'];
+ 
+ /// Make a POSIX path absolute without changing its semantics.
 -- 
 2.50.0
 
