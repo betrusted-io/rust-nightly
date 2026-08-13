@@ -1,19 +1,31 @@
-From 564c158caea3dc1e78a3a85b048917539d41ff12 Mon Sep 17 00:00:00 2001
+From 81e763a75266f30686d766e1cc253c39ef7a23fd Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Tue, 11 Mar 2025 23:08:29 +0800
 Subject: [PATCH 3/3] std: (not for upstreaming) customize tests for Xous
 
 Signed-off-by: Sean Cross <sean@xobs.io>
 ---
+ library/alloctests/tests/io/mod.rs            |  1 +
  library/std/src/collections/hash/map/tests.rs |  4 ++--
- library/std/src/io/tests.rs                   |  1 +
  library/std/tests/sync/mpsc.rs                |  4 ++--
  library/std/tests/sync/mpsc_sync.rs           | 12 ++++++------
  library/std/tests/time.rs                     |  2 +-
  5 files changed, 12 insertions(+), 11 deletions(-)
 
+diff --git a/library/alloctests/tests/io/mod.rs b/library/alloctests/tests/io/mod.rs
+index 712e322d79f..2a0c3f1bcca 100644
+--- a/library/alloctests/tests/io/mod.rs
++++ b/library/alloctests/tests/io/mod.rs
+@@ -364,6 +364,7 @@ fn chain_zero_length_read_is_not_eof() {
+ }
+ 
+ #[bench]
++#[cfg_attr(target_os = "xous", ignore)]
+ #[cfg_attr(miri, ignore)] // Miri isn't fast...
+ fn bench_read_to_end(b: &mut test::Bencher) {
+     b.iter(|| {
 diff --git a/library/std/src/collections/hash/map/tests.rs b/library/std/src/collections/hash/map/tests.rs
-index 9f7df20a1d7..c69e4e179ce 100644
+index fd7d81b2855..1bba6c87287 100644
 --- a/library/std/src/collections/hash/map/tests.rs
 +++ b/library/std/src/collections/hash/map/tests.rs
 @@ -270,11 +270,11 @@ fn test_lots_of_insertions() {
@@ -30,23 +42,11 @@ index 9f7df20a1d7..c69e4e179ce 100644
  
          for i in 1..count {
              assert!(m.insert(i, i).is_none());
-diff --git a/library/std/src/io/tests.rs b/library/std/src/io/tests.rs
-index b22988d4a8a..b7b79dd1e37 100644
---- a/library/std/src/io/tests.rs
-+++ b/library/std/src/io/tests.rs
-@@ -358,6 +358,7 @@ fn chain_zero_length_read_is_not_eof() {
- }
- 
- #[bench]
-+#[cfg_attr(target_os = "xous", ignore)]
- #[cfg_attr(miri, ignore)] // Miri isn't fast...
- fn bench_read_to_end(b: &mut test::Bencher) {
-     b.iter(|| {
 diff --git a/library/std/tests/sync/mpsc.rs b/library/std/tests/sync/mpsc.rs
-index 9de4a71987b..5a985c2615c 100644
+index f1364dda713..d0584a00ccc 100644
 --- a/library/std/tests/sync/mpsc.rs
 +++ b/library/std/tests/sync/mpsc.rs
-@@ -471,7 +471,7 @@ fn recv_timeout_upgrade() {
+@@ -482,7 +482,7 @@ fn recv_timeout_upgrade() {
  #[test]
  fn stress_recv_timeout_shared() {
      let (tx, rx) = channel();
@@ -55,7 +55,7 @@ index 9de4a71987b..5a985c2615c 100644
  
      for i in 0..stress {
          let tx = tx.clone();
-@@ -543,7 +543,7 @@ fn shared_recv_timeout() {
+@@ -554,7 +554,7 @@ fn shared_recv_timeout() {
  #[test]
  fn shared_chan_stress() {
      let (tx, rx) = channel();
@@ -123,10 +123,10 @@ index a7f326d201b..fd64e60a22b 100644
          let tx = tx.clone();
          thread::spawn(move || {
 diff --git a/library/std/tests/time.rs b/library/std/tests/time.rs
-index 0ef89bb09c6..0fcd9196f8e 100644
+index 6d8b4cbfd09..f3e90e1616e 100644
 --- a/library/std/tests/time.rs
 +++ b/library/std/tests/time.rs
-@@ -33,7 +33,7 @@ fn instant_monotonic_concurrent() -> std::thread::Result<()> {
+@@ -35,7 +35,7 @@ fn instant_monotonic_concurrent() -> std::thread::Result<()> {
          .map(|_| {
              std::thread::spawn(|| {
                  let mut old = Instant::now();
@@ -136,5 +136,5 @@ index 0ef89bb09c6..0fcd9196f8e 100644
                      let new = Instant::now();
                      assert!(new >= old);
 -- 
-2.50.0
+2.54.0
 

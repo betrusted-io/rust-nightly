@@ -1,4 +1,4 @@
-From 063f75f2e4846a6b5e3c64efea32beded6c176de Mon Sep 17 00:00:00 2001
+From a0d9196446847f7366e1540545a904e3d3ed309f Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@osdyne.com>
 Date: Tue, 6 Aug 2024 22:45:31 +0800
 Subject: [PATCH 1/3] std: xous: add support for path
@@ -74,10 +74,10 @@ index 00000000000..5a8212e6cd4
 +    }
 +}
 diff --git a/library/std/src/sys/path/mod.rs b/library/std/src/sys/path/mod.rs
-index 254683bc83f..eb95a918a0c 100644
+index bbb7577e186..5fbd27476ad 100644
 --- a/library/std/src/sys/path/mod.rs
 +++ b/library/std/src/sys/path/mod.rs
-@@ -16,6 +16,10 @@
+@@ -35,6 +35,10 @@ pub const fn is_sep_byte(b: u8) -> bool {
          mod uefi;
          pub use uefi::*;
      }
@@ -343,5 +343,5 @@ index 00000000000..f297576179c
 +    );
 +}
 -- 
-2.50.0
+2.54.0
 

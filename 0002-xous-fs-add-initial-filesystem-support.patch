@@ -1,4 +1,4 @@
-From 89d1f567d158a4ebf0682855320f4d594d74e9e8 Mon Sep 17 00:00:00 2001
+From 294d1a2d3ded5c0cac281e0ad2dd3154da5bc645 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@osdyne.com>
 Date: Tue, 6 Aug 2024 22:45:11 +0800
 Subject: [PATCH 2/3] xous: fs: add initial filesystem support
@@ -184,7 +184,7 @@ index 00000000000..f8459b5bac9
 +    cid
 +}
 diff --git a/library/std/src/sys/fs/mod.rs b/library/std/src/sys/fs/mod.rs
-index 0c297c5766b..2a469ba8100 100644
+index b5a5fa93fd4..b35812ed87b 100644
 --- a/library/std/src/sys/fs/mod.rs
 +++ b/library/std/src/sys/fs/mod.rs
 @@ -45,6 +45,10 @@
@@ -1526,5 +1526,5 @@ index f297576179c..633c8766380 100644
  
  /// Make a POSIX path absolute without changing its semantics.
 -- 
-2.50.0
+2.54.0
 
