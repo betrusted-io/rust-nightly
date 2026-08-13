@@ -37,7 +37,6 @@ export CARGO_PROFILE_RELEASE_OPT_LEVEL="3"
 export CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS="true"
 export RUSTC_BOOTSTRAP=1
 export RUSTFLAGS="-Cforce-unwind-tables=yes -Cembed-bitcode=yes -Zforce-unstable-if-unmarked=yes"
-export __CARGO_DEFAULT_LIB_METADATA="stablestd"
 
 command_exists() {
     which $1 &> /dev/null && $1 --version 2>&1 > /dev/null
@@ -65,7 +64,7 @@ else
     exit 1
 fi
 
-src_path="./library/target/riscv32imac-unknown-xous-elf/release/deps"
+src_path="./library/target/riscv32imac-unknown-xous-elf/release/build"
 dest_path="$rust_sysroot/lib/rustlib/riscv32imac-unknown-xous-elf"
 dest_lib_path="$dest_path/lib"
 
@@ -87,10 +86,10 @@ cargo $RUST_TOOLCHAIN build \
     --manifest-path "library/sysroot/Cargo.toml" || exit 1
 
 # TODO: Remove duplicates here by comparing it with $previous_libraries
-for new_item in $(ls -1 $src_path/*.rlib)
-do
-    file=$(basename $new_item)
-    base_string=$(echo $file | rev | cut -d- -f2- | rev)
-done
+#for new_item in $(ls -1 $src_path/*.rlib)
+#do
+#    file=$(basename $new_item)
+#    base_string=$(echo $file | rev | cut -d- -f2- | rev)
+#done
 
-cp $src_path/*.rlib "$dest_lib_path"
+find $src_path -name '*.rlib' -o -name '*.rmeta' | xargs -J % cp % "$dest_lib_path"
