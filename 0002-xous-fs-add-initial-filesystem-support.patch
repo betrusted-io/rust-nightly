@@ -1,4 +1,4 @@
-From 294d1a2d3ded5c0cac281e0ad2dd3154da5bc645 Mon Sep 17 00:00:00 2001
+From 2b5f02c39fd534b1c96deaef3636fb9083f8e582 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@osdyne.com>
 Date: Tue, 6 Aug 2024 22:45:11 +0800
 Subject: [PATCH 2/3] xous: fs: add initial filesystem support
@@ -13,10 +13,10 @@ Signed-off-by: Sean Cross <sean@xobs.io>
  library/std/src/os/xous/services.rs      |   3 +
  library/std/src/os/xous/services/pddb.rs |  88 +++
  library/std/src/sys/fs/mod.rs            |   4 +
- library/std/src/sys/fs/xous.rs           | 662 +++++++++++++++++++++++
- library/std/src/sys/fs/xous/senres.rs    | 628 +++++++++++++++++++++
+ library/std/src/sys/fs/xous.rs           | 666 +++++++++++++++++++++++
+ library/std/src/sys/fs/xous/senres.rs    | 636 ++++++++++++++++++++++
  library/std/src/sys/path/xous.rs         |   7 +-
- 8 files changed, 1421 insertions(+), 6 deletions(-)
+ 8 files changed, 1433 insertions(+), 6 deletions(-)
  create mode 100644 library/std/src/os/xous/fs.rs
  create mode 100644 library/std/src/os/xous/services/pddb.rs
  create mode 100644 library/std/src/sys/fs/xous.rs
@@ -200,10 +200,10 @@ index b5a5fa93fd4..b35812ed87b 100644
          use unsupported as imp;
 diff --git a/library/std/src/sys/fs/xous.rs b/library/std/src/sys/fs/xous.rs
 new file mode 100644
-index 00000000000..bfb6b75ffee
+index 00000000000..b475fa6150a
 --- /dev/null
 +++ b/library/std/src/sys/fs/xous.rs
-@@ -0,0 +1,662 @@
+@@ -0,0 +1,666 @@
 +mod senres;
 +
 +use alloc::str::FromStr;
@@ -534,7 +534,7 @@ index 00000000000..bfb6b75ffee
 +        false
 +    }
 +
-+    pub fn read_buf(&self, cursor: BorrowedCursor<'_>) -> io::Result<()> {
++    pub fn read_buf(&self, cursor: BorrowedCursor<'_, u8>) -> io::Result<()> {
 +        crate::io::default_read_buf(|buf| self.read(buf), cursor)
 +    }
 +
@@ -749,6 +749,10 @@ index 00000000000..bfb6b75ffee
 +    unsupported()
 +}
 +
++pub fn set_perm_nofollow(_p: &Path, _perm: FilePermissions) -> io::Result<()> {
++    unsupported()
++}
++
 +pub fn set_times(_p: &Path, _times: FileTimes) -> io::Result<()> {
 +    unsupported()
 +}
@@ -868,10 +872,10 @@ index 00000000000..bfb6b75ffee
 +}
 diff --git a/library/std/src/sys/fs/xous/senres.rs b/library/std/src/sys/fs/xous/senres.rs
 new file mode 100644
-index 00000000000..5ce453fa046
+index 00000000000..6f019b5707d
 --- /dev/null
 +++ b/library/std/src/sys/fs/xous/senres.rs
-@@ -0,0 +1,628 @@
+@@ -0,0 +1,636 @@
 +#![allow(unused)]
 +#![allow(elided_lifetimes_in_paths)]
 +
@@ -916,7 +920,10 @@ index 00000000000..5ce453fa046
 +            message_id,
 +            auto_return: true,
 +            data: unsafe {
-+                core::slice::from_raw_parts_mut(crate::ptr::with_exposed_provenance_mut::<u8>(data), len)
++                core::slice::from_raw_parts_mut(
++                    crate::ptr::with_exposed_provenance_mut::<u8>(data),
++                    len,
++                )
 +            },
 +        })
 +    }
@@ -965,7 +972,11 @@ index 00000000000..5ce453fa046
 +    fn drop(&mut self) {
 +        if self.auto_return {
 +            #[cfg(target_os = "xous")]
-+            return_memory_message(self.message_id, self.data.as_ptr() as usize, self.data.len());
++            return_memory_message(
++                self.message_id,
++                self.data.as_ptr().addr() as usize,
++                self.data.len(),
++            );
 +        }
 +    }
 +}
@@ -1044,7 +1055,7 @@ index 00000000000..5ce453fa046
 +        let a1: usize = connection.try_into().unwrap();
 +        let a2 = InvokeType::Lend as usize;
 +        let a3 = opcode;
-+        let a4 = self.as_ptr() as usize;
++        let a4 = self.as_ptr().addr() as usize;
 +        let a5 = self.len();
 +
 +        unsafe {
@@ -1092,7 +1103,8 @@ index 00000000000..5ce453fa046
 +    }
 +    #[cfg(target_os = "xous")]
 +    fn lend_mut(&mut self, connection: Connection, opcode: usize) -> Result<(usize, usize), ()> {
-+        crate::os::xous::ffi::lend_mut(connection, opcode, self.as_mut_slice(), 0, 0).map_err(|_| ())
++        crate::os::xous::ffi::lend_mut(connection, opcode, self.as_mut_slice(), 0, 0)
++            .map_err(|_| ())
 +    }
 +}
 +

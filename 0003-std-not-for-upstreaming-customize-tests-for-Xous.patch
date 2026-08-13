@@ -1,4 +1,4 @@
-From 81e763a75266f30686d766e1cc253c39ef7a23fd Mon Sep 17 00:00:00 2001
+From baecd8e6984297ff2fd558ba3af3929ad91136e0 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Tue, 11 Mar 2025 23:08:29 +0800
 Subject: [PATCH 3/3] std: (not for upstreaming) customize tests for Xous
