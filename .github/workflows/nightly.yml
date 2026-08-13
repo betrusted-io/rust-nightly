@@ -91,7 +91,6 @@ jobs:
             --release \
             --features "panic-unwind compiler-builtins-c compiler-builtins-mem" \
             --manifest-path "library/sysroot/Cargo.toml" \
-          && find library/target/ \
           && cp library/target/riscv32imac-unknown-xous-elf/release/deps/*.rlib $(rustc --print sysroot)/lib/rustlib/riscv32imac-unknown-xous-elf/lib \
           && (dest=$(pwd) && cd $(rustc --print sysroot) && zip -r ${dest}/riscv32imac-unknown-xous_${{ steps.extract_rust_version.outputs.version }}.zip lib/rustlib/riscv32imac-unknown-xous-elf/)
         env:
@@ -99,6 +98,7 @@ jobs:
           CARGO_PROFILE_RELEASE_OPT_LEVEL: 3
           CARGO_PROFILE_RELEASE_DEBUG_ASSERTIONS: false
           RUSTC_BOOTSTRAP: 1
+          __CARGO_DEFAULT_LIB_METADATA: stablestd
           RUSTFLAGS: -Cforce-unwind-tables=yes -Cembed-bitcode=yes -Zforce-unstable-if-unmarked=yes
           __CARGO_DEFAULT_LIB_METADATA: stablestd
           CC: riscv-none-elf-gcc
