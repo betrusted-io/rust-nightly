@@ -92,4 +92,4 @@ cargo $RUST_TOOLCHAIN build \
 #    base_string=$(echo $file | rev | cut -d- -f2- | rev)
 #done
 
-find $src_path -name '*.rlib' -o -name '*.rmeta' | xargs -J % cp % "$dest_lib_path"
+find $src_path \( -name '*.rlib' -o -name '*.rmeta' \) -exec cp {} "$dest_lib_path" \;

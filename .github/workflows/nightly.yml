@@ -92,7 +92,10 @@ jobs:
             --release \
             --features "panic-unwind compiler-builtins-c compiler-builtins-mem" \
             --manifest-path "library/sysroot/Cargo.toml" \
-          && find library/target/riscv32imac-unknown-xous-elf/release/build -name '*.rlib' -o -name '*.rmeta' | xargs -J % cp % "$(rustc --print sysroot)/lib/rustlib/riscv32imac-unknown-xous-elf/lib" \
+          && find \
+            library/target/riscv32imac-unknown-xous-elf/release/build \
+            \( -name '*.rlib' -o -name '*.rmeta' \) \
+            -exec cp {} "$(rustc --print sysroot)/lib/rustlib/riscv32imac-unknown-xous-elf/lib" \; \
           && (dest=$(pwd) && cd $(rustc --print sysroot) && zip -r ${dest}/riscv32imac-unknown-xous_${{ steps.extract_rust_version.outputs.version }}.zip lib/rustlib/riscv32imac-unknown-xous-elf/)
         env:
           CARGO_PROFILE_RELEASE_DEBUG: 0
