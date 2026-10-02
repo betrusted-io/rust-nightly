@@ -1,46 +1,18 @@
-# Rust Stable for Xous
+# Rust Nightly for Xous
 
-Build stable Rust binaries for Xous! This release targets Rust 1.79.0.
+Nightly rebuilds of Xous support for Rust.
 
-## Installing Prebuilt Releases
-
-1. Ensure you are running Rust 1.79.0. Future versions of Rust will need a different version of this software.
-2. Download the latest release from the [releases](https://github.com/betrusted-io/rust/releases/latest) page
-3. Unzip the zipfile to your Rust sysroot. On Unix systems can do this with something like:
-
-```sh
-cd $(rustc --print sysroot)
-wget https://github.com/betrusted-io/rust/releases/latest/download/riscv32imac-unknown-xous_1.79.0.zip
-rm -rf lib/rustlib/riscv32imac-unknown-xous-elf # Remove any existing version
-unzip *.zip
-rm *.zip
-cd -
-```
-
-On Windows with Powershell you can run:
-
-```powershell
-Push-Location $(rustc --print sysroot)
-if (Test-Path lib\rustlib\riscv32imac-unknown-xous-elf) { Remove-Item -Recurse -Force lib\rustlib\riscv32imac-unknown-xous-elf }
-Invoke-WebRequest -Uri https://github.com/betrusted-io/rust/releases/latest/download/riscv32imac-unknown-xous_1.79.0.zip -Outfile toolchain.zip
-Expand-Archive -DestinationPath . -Path toolchain.zip
-Remove-Item toolchain.zip
-Pop-Location
-```
+Each night this repo installs the latest `nightly` compiler, then applies these patches on top to ensure
+that they still work. If upstream changes the API, the build errors and we will adjust the Xous patches
+to match.
 
 ## Building From Source
 
-1. Install a RISC-V toolchain, and ensure it's in your path. Set `CC` and `AR` to point to the toolchain's -gcc and -ar binaries.
-2. Ensure the `rust` submodule is checked out. Run `git submodule update --init`. You do not need to do a recursive init.
-3. Run `./rebuild.sh`. This will build libstd and install it.
+1. Install a RISC-V toolchain, and ensure it's in your path.
+2. Enter the `rust` directory and make sure it's checked out. Use `rustc +nightly -Vv` to get the hash used by the compiler.
+3. Apply all patches: `git am ../*.patch`. Fix patches as necessary.
+4. Run `CC=riscv-none-elf-gcc RUST_TOOLCHAIN=+nightly ../build.sh` to verify the build works.
 
 ## Building on Windows Powershell
 
-On Windows, you can use the `rebuild.ps1` script to build and install this package. You will need
-to have a Riscv compiler in your path.
-
-Run `rebuild.ps1`. It is recommended that you run it under a new shell in order to avoid polluting your environment with Rust-specific variables:
-
-```powershell
-powershell .\rebuild.ps1
-```
+On Windows, you can use the `build.ps1` script to drive the compilation instead.
