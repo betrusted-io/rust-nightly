@@ -1,4 +1,4 @@
-From c8e8d80574fdc0c6bf977ebec730fdb553b29fc1 Mon Sep 17 00:00:00 2001
+From 25d4b6d57496f9df79b5b8fdd6f642aecfba6615 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@osdyne.com>
 Date: Tue, 6 Aug 2024 22:45:11 +0800
 Subject: [PATCH 2/3] xous: fs: add initial filesystem support
@@ -13,10 +13,10 @@ Signed-off-by: Sean Cross <sean@xobs.io>
  library/std/src/os/xous/services.rs      |   3 +
  library/std/src/os/xous/services/pddb.rs |  88 +++
  library/std/src/sys/fs/mod.rs            |   4 +
- library/std/src/sys/fs/xous.rs           | 701 +++++++++++++++++++++++
+ library/std/src/sys/fs/xous.rs           | 706 +++++++++++++++++++++++
  library/std/src/sys/fs/xous/senres.rs    | 636 ++++++++++++++++++++
  library/std/src/sys/path/xous.rs         |   7 +-
- 8 files changed, 1468 insertions(+), 6 deletions(-)
+ 8 files changed, 1473 insertions(+), 6 deletions(-)
  create mode 100644 library/std/src/os/xous/fs.rs
  create mode 100644 library/std/src/os/xous/services/pddb.rs
  create mode 100644 library/std/src/sys/fs/xous.rs
@@ -184,10 +184,10 @@ index 00000000000..f8459b5bac9
 +    cid
 +}
 diff --git a/library/std/src/sys/fs/mod.rs b/library/std/src/sys/fs/mod.rs
-index b5a5fa93fd4..b35812ed87b 100644
+index e15841b363d..21d41210017 100644
 --- a/library/std/src/sys/fs/mod.rs
 +++ b/library/std/src/sys/fs/mod.rs
-@@ -45,6 +45,10 @@
+@@ -47,6 +47,10 @@
          mod vexos;
          use vexos as imp;
      }
@@ -200,10 +200,10 @@ index b5a5fa93fd4..b35812ed87b 100644
          use unsupported as imp;
 diff --git a/library/std/src/sys/fs/xous.rs b/library/std/src/sys/fs/xous.rs
 new file mode 100644
-index 00000000000..2a34a704c09
+index 00000000000..506df809056
 --- /dev/null
 +++ b/library/std/src/sys/fs/xous.rs
-@@ -0,0 +1,701 @@
+@@ -0,0 +1,706 @@
 +mod senres;
 +
 +use alloc::str::FromStr;
@@ -216,6 +216,7 @@ index 00000000000..2a34a704c09
 +use crate::os::xous::ffi::{OsStrExt, blocking_scalar, lend_mut};
 +use crate::os::xous::services::{PddbBlockingScalar, PddbLend, PddbLendMut, pddb_server};
 +use crate::path::{Path, PathBuf};
++pub use crate::sys::fs::common::{ExtraHomeDirs, ExtraMediaDirs};
 +use crate::sys::time::SystemTime;
 +use crate::sys::{unsupported, unsupported_err};
 +use senres::{Senres, SenresMut, Stack};
@@ -767,6 +768,10 @@ index 00000000000..2a34a704c09
 +}
 +
 +pub fn rename(_old: &Path, _new: &Path) -> io::Result<()> {
++    unsupported()
++}
++
++pub fn rename_noreplace(_old: &Path, _new: &Path) -> io::Result<()> {
 +    unsupported()
 +}
 +
@@ -1573,5 +1578,5 @@ index f297576179c..633c8766380 100644
  
  /// Make a POSIX path absolute without changing its semantics.
 -- 
-2.54.0
+2.55.0
 

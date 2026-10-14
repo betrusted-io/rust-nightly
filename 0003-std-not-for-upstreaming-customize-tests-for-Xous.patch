@@ -1,4 +1,4 @@
-From 896a834fcfa66cd8f819579b01d0b9403e703fcf Mon Sep 17 00:00:00 2001
+From 9b33caa7fef7b6143b77808b80c1bb4eae2dd4de Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@xobs.io>
 Date: Tue, 11 Mar 2025 23:08:29 +0800
 Subject: [PATCH 3/3] std: (not for upstreaming) customize tests for Xous
@@ -123,7 +123,7 @@ index a7f326d201b..fd64e60a22b 100644
          let tx = tx.clone();
          thread::spawn(move || {
 diff --git a/library/std/tests/time.rs b/library/std/tests/time.rs
-index 6d8b4cbfd09..f3e90e1616e 100644
+index 4d47b068ab8..c3863e9d5e7 100644
 --- a/library/std/tests/time.rs
 +++ b/library/std/tests/time.rs
 @@ -35,7 +35,7 @@ fn instant_monotonic_concurrent() -> std::thread::Result<()> {
@@ -136,5 +136,5 @@ index 6d8b4cbfd09..f3e90e1616e 100644
                      let new = Instant::now();
                      assert!(new >= old);
 -- 
-2.54.0
+2.55.0
 
