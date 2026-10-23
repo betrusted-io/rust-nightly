@@ -1,4 +1,4 @@
-From 7b4f05c13ca7b03f86af684f2683739c67a0f064 Mon Sep 17 00:00:00 2001
+From 377cfe2abd025ace201bc35211b481e90a14b067 Mon Sep 17 00:00:00 2001
 From: Sean Cross <sean@osdyne.com>
 Date: Tue, 6 Aug 2024 22:45:11 +0800
 Subject: [PATCH 2/3] xous: fs: add initial filesystem support
@@ -13,10 +13,10 @@ Signed-off-by: Sean Cross <sean@xobs.io>
  library/std/src/os/xous/services.rs      |   3 +
  library/std/src/os/xous/services/pddb.rs |  88 +++
  library/std/src/sys/fs/mod.rs            |   4 +
- library/std/src/sys/fs/xous.rs           | 706 +++++++++++++++++++++++
+ library/std/src/sys/fs/xous.rs           | 714 +++++++++++++++++++++++
  library/std/src/sys/fs/xous/senres.rs    | 636 ++++++++++++++++++++
  library/std/src/sys/path/xous.rs         |   7 +-
- 8 files changed, 1473 insertions(+), 6 deletions(-)
+ 8 files changed, 1481 insertions(+), 6 deletions(-)
  create mode 100644 library/std/src/os/xous/fs.rs
  create mode 100644 library/std/src/os/xous/services/pddb.rs
  create mode 100644 library/std/src/sys/fs/xous.rs
@@ -200,10 +200,10 @@ index e15841b363d..21d41210017 100644
          use unsupported as imp;
 diff --git a/library/std/src/sys/fs/xous.rs b/library/std/src/sys/fs/xous.rs
 new file mode 100644
-index 00000000000..506df809056
+index 00000000000..38e581e7068
 --- /dev/null
 +++ b/library/std/src/sys/fs/xous.rs
-@@ -0,0 +1,706 @@
+@@ -0,0 +1,714 @@
 +mod senres;
 +
 +use alloc::str::FromStr;
@@ -349,6 +349,14 @@ index 00000000000..506df809056
 +
 +    fn next(&mut self) -> Option<io::Result<DirEntry>> {
 +        self.entries.pop().map(|v| Ok(v))
++    }
++}
++
++impl ReadDir {
++    pub fn dir(&self) -> io::Result<Dir> {
++        let mut options = OpenOptions::new();
++        options.read(true);
++        Dir::open(&self.root.as_path(), &options)
 +    }
 +}
 +
