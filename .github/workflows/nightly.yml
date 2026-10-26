@@ -31,7 +31,19 @@ jobs:
         id: extract_rust_version
 
       - name: Setup riscv gnu/gcc toolchain
-        uses: gregdavill/setup-riscv-gnu-toolchain@v2.0
+        run: |
+          # Download the nightly release archive
+          wget -q https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/2026.10.26/riscv32-elf-ubuntu-24.04-gcc.tar.xz
+          
+          # Extract it to a local directory
+          mkdir -p ${{ github.workspace }}/riscv-toolchain
+          tar -xJf riscv32-elf-ubuntu-24.04-gcc.tar.xz -C ${{ github.workspace }}/riscv-toolchain --strip-components=1
+          
+          # Add the toolchain to the PATH for subsequent steps
+          echo "${{ github.workspace }}/riscv-toolchain/bin" >> $GITHUB_PATH
+
+      - name: Verify Installation
+        run: riscv32-unknown-elf-gcc --version
 
       - name: Checkout repo
         uses: actions/checkout@v2
